@@ -101,6 +101,24 @@ Muda **dois** modelos — **Magic Link** e **Confirm signup** — para o mesmo c
 3. No site, vai a http://localhost:3000/admin → configura o **2FA** com a app do telemóvel.
 4. Os outros admins: cada um entra uma vez no site; depois tu adicionas em **Admin → Admins**.
 
+### Modo de testes: desligar o 2FA (só no estar-dev)
+
+Para testar sem a app de autenticação, corre no **SQL Editor**:
+```sql
+update private.definicoes set exigir_2fa_admins = false;
+```
+O painel de admin mostra um aviso amarelo enquanto estiver desligado. **Antes de usar dados reais** (e sempre no estar-prod):
+```sql
+update private.definicoes set exigir_2fa_admins = true;
+```
+Isto só se muda no Supabase — ninguém o consegue mudar através do site.
+
+### Testes rápidos sem configurar o Gmail
+
+Sem o SMTP do passo 3.3, o Supabase só envia ~2 emails por hora e **só para emails da equipa do projeto Supabase**
+(o teu). Chega para os primeiros testes feitos por ti; muda os modelos de email (3.4) na mesma.
+Para testar com mais pessoas, configura o Gmail.
+
 ## 6. Abrir um período de disponibilidades (enquanto o painel não tem esta opção)
 
 No SQL Editor (ajusta as datas):

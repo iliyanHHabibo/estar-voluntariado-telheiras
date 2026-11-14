@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { notFound, redirect } from "next/navigation";
 import { Container, PageHeader, Section } from "@/components/ui";
-import { exigirUtilizador, souAdmin } from "@/lib/auth";
+import { adminExige2fa, exigirUtilizador, souAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { ConfigurarForm, VerificarForm } from "./forms";
 
@@ -26,7 +26,7 @@ export default function DoisFatores() {
 async function Conteudo() {
   const u = await exigirUtilizador("/admin");
   if (!(await souAdmin())) notFound();
-  if (u.aal === "aal2") redirect("/admin");
+  if (u.aal === "aal2" || !(await adminExige2fa())) redirect("/admin");
 
   const supabase = await createClient();
   const { data } = await supabase.auth.mfa.listFactors();

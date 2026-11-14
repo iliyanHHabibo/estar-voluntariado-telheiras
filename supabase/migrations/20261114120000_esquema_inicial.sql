@@ -6,8 +6,9 @@
 --
 -- Princípios de segurança:
 --  * Row Level Security (RLS) ativo em TODAS as tabelas. Sem política = sem acesso.
---  * Permissões de admin exigem 2FA ativo na sessão (aal2). Uma password/link de
---    email roubado, sozinho, não dá acesso a dados de outras pessoas.
+--  * Permissões de admin exigem 2FA ativo na sessão (aal2). Um link de email
+--    roubado, sozinho, não dá acesso a dados de outras pessoas. (Interruptor para
+--    testes em private.definicoes — ver secção 3.)
 --  * Funções com privilégios elevados (security definer) ficam no esquema
 --    `private`, que não é exposto pela API, e têm search_path vazio.
 --  * Colunas que só os admins podem mudar são protegidas por triggers.
@@ -237,12 +238,27 @@ create function private.is_admin_member() returns boolean
 language sql stable security definer set search_path = ''
 as $$ select exists (select 1 from public.admins a where a.user_id = (select auth.uid())) $$;
 
--- É admin E a sessão atual passou o 2FA (aal2). É ESTA que dá acesso aos dados.
+-- Definições do sistema. Só se alteram no SQL Editor do Supabase (não estão expostas pela API).
+--   exigir_2fa_admins: LIGADO por omissão. Pode desligar-se temporariamente no projeto
+--   de testes (estar-dev) com:  update private.definicoes set exigir_2fa_admins = false;
+create table private.definicoes (
+  id                boolean primary key default true check (id),  -- só uma linha
+  exigir_2fa_admins boolean not null default true
+);
+insert into private.definicoes default values;
+revoke all on private.definicoes from public, anon, authenticated;
+
+create function private.exige_2fa() returns boolean
+language sql stable security definer set search_path = ''
+as $$ select coalesce((select d.exigir_2fa_admins from private.definicoes d), true) $$;
+
+-- É admin E (se o 2FA estiver a ser exigido) a sessão passou o 2FA (aal2).
+-- É ESTA função que dá acesso aos dados.
 create function private.is_admin() returns boolean
 language sql stable security definer set search_path = ''
 as $$
   select private.is_admin_member()
-     and coalesce((select auth.jwt()) ->> 'aal', '') = 'aal2'
+     and (not private.exige_2fa() or coalesce((select auth.jwt()) ->> 'aal', '') = 'aal2')
 $$;
 
 -- O período de disponibilidades do mês desta data está aberto hoje?
@@ -685,6 +701,11 @@ as $$
   limit least(greatest(coalesce(p_limite, 50), 1), 100)
 $$;
 
+-- Para o site saber se deve pedir o 2FA aos admins
+create function public.admin_exige_2fa() returns boolean
+language sql stable security definer set search_path = ''
+as $$ select private.exige_2fa() $$;
+
 -- Para o site saber para onde encaminhar depois do login
 create function public.sou_admin() returns boolean
 language sql stable security definer set search_path = ''
@@ -884,7 +905,7 @@ grant execute on function private.hoje(), private.idade(date), private.is_admin_
 
 -- RPCs
 grant execute on function public.testemunhos_publicados(integer) to anon, authenticated;
-grant execute on function public.sou_admin(), public.responder_alocacao(uuid, public.estado_alocacao, text),
+grant execute on function public.sou_admin(), public.admin_exige_2fa(), public.responder_alocacao(uuid, public.estado_alocacao, text),
                           public.disponiveis_para_sessao(uuid), public.adicionar_admin(text),
                           public.remover_admin(uuid), public.listar_admins(),
                           public.os_meus_dados(), public.apagar_a_minha_conta()

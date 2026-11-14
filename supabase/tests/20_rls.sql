@@ -137,6 +137,23 @@ select tests.ok((select count(*) from public.availabilities) = 0, 'admin SEM 2FA
 select tests.falha(format('insert into public.sessions (activity_id, data, inicio, fim) values (%L, %L, ''14:00'', ''15:00'')', :'clinica', :'sabado'),
   'row-level security', 'admin SEM 2FA NÃO cria visitas');
 select tests.falha('select * from public.listar_admins()', 'sem_permissao', 'admin SEM 2FA NÃO gere admins');
+select tests.ok(public.admin_exige_2fa(), 'por omissão, o 2FA é exigido');
+select tests.falha('update private.definicoes set exigir_2fa_admins = false', 'permission denied', 'ninguém desliga o 2FA através do site/API');
+reset role;
+
+-- Modo de testes: 2FA desligado no SQL Editor
+update private.definicoes set exigir_2fa_admins = false;
+set role authenticated;
+select tests.entrar(:M, 'aal1');
+select tests.ok(not public.admin_exige_2fa(), 'o site sabe que o 2FA está desligado');
+select tests.ok((select count(*) from public.profiles) = 3, 'com o 2FA desligado, admin entra só com o email e vê os perfis');
+select tests.entrar(:B, 'aal1');
+select tests.ok((select count(*) from public.profiles) = 1, 'com o 2FA desligado, voluntário continua a ver só o seu perfil');
+reset role;
+update private.definicoes set exigir_2fa_admins = true;
+set role authenticated;
+select tests.entrar(:M, 'aal1');
+select tests.ok((select count(*) from public.profiles) = 0, 'ao voltar a ligar, o 2FA volta a ser exigido');
 
 -- ================= ADMIN COM 2FA (aal2) =================
 select tests.entrar(:M, 'aal2');

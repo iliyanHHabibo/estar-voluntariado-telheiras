@@ -42,11 +42,18 @@ export async function souAdmin(): Promise<boolean> {
   return !error && data === true;
 }
 
-/** Admin com 2FA verificado nesta sessão. Caso contrário redireciona/404. */
+/** O 2FA dos admins está ligado? (interruptor na base de dados; ligado por omissão) */
+export async function adminExige2fa(): Promise<boolean> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("admin_exige_2fa");
+  return error ? true : data !== false; // em caso de dúvida, exige
+}
+
+/** Admin (com 2FA verificado nesta sessão, se estiver a ser exigido). Caso contrário redireciona/404. */
 export async function exigirAdmin(): Promise<Utilizador> {
   const u = await exigirUtilizador("/admin");
   if (!(await souAdmin())) notFound(); // não revelar que a área existe
-  if (u.aal !== "aal2") redirect("/entrar/2fa");
+  if (u.aal !== "aal2" && (await adminExige2fa())) redirect("/entrar/2fa");
   return u;
 }
 

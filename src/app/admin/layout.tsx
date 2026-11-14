@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense, type ReactNode } from "react";
 import { Container } from "@/components/ui";
-import { exigirAdmin } from "@/lib/auth";
+import { adminExige2fa, exigirAdmin } from "@/lib/auth";
 import { sair } from "../entrar/actions";
 
 export const metadata: Metadata = {
@@ -47,5 +47,16 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 /** Primeira verificação (cada página volta a verificar com exigirAdmin()). */
 async function Porta({ children }: { children: ReactNode }) {
   await exigirAdmin();
-  return <>{children}</>;
+  const com2fa = await adminExige2fa();
+  return (
+    <>
+      {!com2fa && (
+        <p role="status" className="mb-8 rounded-xl border-2 border-aviso/40 bg-amber-50 px-4 py-3 text-aviso">
+          <strong>Modo de testes:</strong> o 2FA dos admins está desligado. Liga-o antes de usar dados reais
+          (ver CONFIGURAR.md).
+        </p>
+      )}
+      {children}
+    </>
+  );
 }
