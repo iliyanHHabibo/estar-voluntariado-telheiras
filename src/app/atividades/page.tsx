@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { CheckCircle2, Clock, MapPin, ShieldAlert } from "lucide-react";
 import { ButtonLink, Container, PageHeader, Section } from "@/components/ui";
-import { ATIVIDADES, REGRAS_GERAIS } from "@/lib/activities";
+import { ATIVIDADES, REGRAS_GERAIS } from "@/lib/atividades";
 import { ROTA_INSCRICAO } from "@/lib/site";
 
 export const metadata: Metadata = {

@@ -2,7 +2,7 @@
  * Atividades de voluntariado.
  *
  * Por agora vivem aqui no código. Na fase da base de dados passam a ser geridas
- * pelos admins (tabela `activities`), e este ficheiro deixa de ser a fonte de verdade.
+ * pelos admins (tabela `atividades`), e este ficheiro deixa de ser a fonte de verdade.
  */
 
 export type Atividade = {

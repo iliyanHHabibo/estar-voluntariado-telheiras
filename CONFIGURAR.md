@@ -20,7 +20,11 @@ No menu **SQL Editor** → **New query**, corre **por esta ordem** (copiar o fic
 1. `supabase/migrations/20261114120000_esquema_inicial.sql`
 2. `supabase/seed.sql`
 
-Deve aparecer "Success" nas duas.
+Deve aparecer "Success" nas duas. O aviso *"destructive operations"* é esperado (são as linhas `revoke`,
+que retiram permissões por omissão) — podes confirmar.
+
+> **Recomeçar do zero (só no estar-dev):** corre `supabase/apagar-tudo-dev.sql` e depois outra vez os dois
+> ficheiros acima. Apaga todas as tabelas e dados (mas não as contas de utilizador). **Nunca no estar-prod.**
 
 ## 3. Autenticação
 
@@ -123,7 +127,7 @@ Para testar com mais pessoas, configura o Gmail.
 
 No SQL Editor (ajusta as datas):
 ```sql
-insert into public.availability_periods (mes, abre_em, fecha_em)
+insert into public.periodos_disponibilidade (mes, abre_em, fecha_em)
 values ('2026-12-01', '2026-11-15', '2026-11-25');
 ```
 

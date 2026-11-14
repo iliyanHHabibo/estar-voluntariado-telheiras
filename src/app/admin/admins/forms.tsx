@@ -31,7 +31,7 @@ export function RemoverAdminForm({ userId, email, eu }: { userId: string; email:
       }}
       className="flex flex-col items-end gap-2"
     >
-      <input type="hidden" name="user_id" value={userId} />
+      <input type="hidden" name="utilizador_id" value={userId} />
       <button type="submit" className="rounded-full border-2 border-erro/30 px-4 py-2 text-sm font-semibold text-erro hover:bg-red-50">
         Remover
       </button>

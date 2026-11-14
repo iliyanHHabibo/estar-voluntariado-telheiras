@@ -5,7 +5,7 @@ import { AdicionarAdminForm, RemoverAdminForm } from "./forms";
 
 export const metadata: Metadata = { title: "Admins" };
 
-type Admin = { user_id: string; email: string; desde: string; tem_2fa: boolean };
+type Admin = { utilizador_id: string; email: string; desde: string; tem_2fa: boolean };
 
 export default async function Admins() {
   const eu = await exigirAdmin();
@@ -23,10 +23,10 @@ export default async function Admins() {
         ) : (
           <ul className="divide-y divide-black/10">
             {admins.map((a) => (
-              <li key={a.user_id} className="flex flex-wrap items-center justify-between gap-4 py-4">
+              <li key={a.utilizador_id} className="flex flex-wrap items-center justify-between gap-4 py-4">
                 <div>
                   <p className="font-semibold break-all">
-                    {a.email} {a.user_id === eu.id && <span className="text-sm font-normal text-tinta-suave">(tu)</span>}
+                    {a.email} {a.utilizador_id === eu.id && <span className="text-sm font-normal text-tinta-suave">(tu)</span>}
                   </p>
                   <p className="text-sm text-tinta-suave">
                     Desde {new Date(a.desde).toLocaleDateString("pt-PT")} ·{" "}
@@ -37,7 +37,7 @@ export default async function Admins() {
                     )}
                   </p>
                 </div>
-                <RemoverAdminForm userId={a.user_id} email={a.email} eu={a.user_id === eu.id} />
+                <RemoverAdminForm userId={a.utilizador_id} email={a.email} eu={a.utilizador_id === eu.id} />
               </li>
             ))}
           </ul>

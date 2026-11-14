@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { ArrowRight, CalendarDays, Clock, HeartHandshake, Hourglass, MailCheck } from "lucide-react";
 import { ButtonLink, Container, Section } from "@/components/ui";
-import { ATIVIDADES } from "@/lib/activities";
+import { ATIVIDADES } from "@/lib/atividades";
 import { ROTA_INSCRICAO, SITE } from "@/lib/site";
-import { TESTEMUNHOS } from "@/lib/testimonials";
+import { TESTEMUNHOS } from "@/lib/testemunhos";
 
 const PASSOS = [
   { icon: HeartHandshake, titulo: "Inscreve-te", texto: "Preenches os teus dados uma única vez." },

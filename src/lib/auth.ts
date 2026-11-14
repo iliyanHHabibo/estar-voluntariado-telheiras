@@ -65,7 +65,7 @@ export async function destinoDepoisDeEntrar(seguinte?: string | null): Promise<s
   }
   const supabase = await createClient();
   const u = await obterUtilizador();
-  const { data } = await supabase.from("profiles").select("id").eq("id", u?.id ?? "").maybeSingle();
+  const { data } = await supabase.from("voluntarios").select("id").eq("id", u?.id ?? "").maybeSingle();
   if (!data) return "/conta/inscricao";
   return pedido?.startsWith("/conta") ? pedido : "/conta";
 }

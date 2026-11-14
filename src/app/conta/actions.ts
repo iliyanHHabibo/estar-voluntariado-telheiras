@@ -78,7 +78,7 @@ export async function criarPerfil(_prev: EstadoInscricao, formData: FormData): P
   const menor = idadeEm(new Date(d.data_nascimento + "T12:00:00")) < 18;
 
   const supabase = await createClient();
-  const { error } = await supabase.from("profiles").insert({
+  const { error } = await supabase.from("voluntarios").insert({
     id: u.id,
     nome: d.nome,
     telefone: d.telefone,
@@ -95,8 +95,8 @@ export async function criarPerfil(_prev: EstadoInscricao, formData: FormData): P
 
   if (d.interesses.length) {
     await supabase
-      .from("volunteer_interests")
-      .insert(d.interesses.map((activity_id) => ({ volunteer_id: u.id, activity_id })));
+      .from("voluntario_interesses")
+      .insert(d.interesses.map((atividade_id) => ({ voluntario_id: u.id, atividade_id })));
   }
 
   redirect("/conta?bem-vindo=1");

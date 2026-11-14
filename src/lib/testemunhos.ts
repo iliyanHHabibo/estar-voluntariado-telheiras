@@ -2,7 +2,7 @@
  * Testemunhos publicados.
  *
  * Fica vazio de propósito: só entram testemunhos reais, aprovados pelos admins.
- * Na fase da base de dados, este ficheiro é substituído por uma consulta à tabela `testimonials`
+ * Na fase da base de dados, este ficheiro é substituído por uma consulta à tabela `testemunhos`
  * (apenas os com estado "aprovado").
  */
 

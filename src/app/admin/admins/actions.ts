@@ -22,11 +22,11 @@ export async function adicionarAdmin(_prev: EstadoAdmins, formData: FormData): P
 
 export async function removerAdmin(_prev: EstadoAdmins, formData: FormData): Promise<EstadoAdmins> {
   await exigirAdmin();
-  const id = z.uuid().safeParse(formData.get("user_id"));
+  const id = z.uuid().safeParse(formData.get("utilizador_id"));
   if (!id.success) return { erro: "Pedido inválido." };
 
   const supabase = await createClient();
-  const { error } = await supabase.rpc("remover_admin", { p_user_id: id.data });
+  const { error } = await supabase.rpc("remover_admin", { p_utilizador_id: id.data });
   if (error) return { erro: mensagemDeErro(error) };
   revalidatePath("/admin/admins");
   return { ok: "Admin removido." };

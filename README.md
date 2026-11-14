@@ -36,10 +36,10 @@ Abre http://localhost:3000 no browser.
 
 | Quero mudar… | Ficheiro |
 |---|---|
-| Textos das atividades, horários, regras | `src/lib/activities.ts` |
+| Textos das atividades, horários, regras | `src/lib/atividades.ts` |
 | Email, idade mínima, menu | `src/lib/site.ts` |
 | Cores e tipografia | `src/app/globals.css` |
-| Testemunhos publicados | `src/lib/testimonials.ts` (vai passar para a base de dados) |
+| Testemunhos publicados | `src/lib/testemunhos.ts` (vai passar para a base de dados) |
 | Cabeçalhos de segurança e CSP | `next.config.ts` |
 | Base de dados, permissões (RLS) | `supabase/migrations/` (nunca editar uma migração já aplicada: criar uma nova) |
 | Login, sessão, quem é admin | `src/lib/auth.ts`, `src/proxy.ts` |

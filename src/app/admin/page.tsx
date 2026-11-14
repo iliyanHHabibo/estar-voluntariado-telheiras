@@ -15,9 +15,9 @@ export default async function PainelAdmin() {
   const hoje = new Date().toISOString().slice(0, 10);
 
   const [voluntarios, testemunhos, visitas] = await Promise.all([
-    contar("profiles", (q) => q.eq("estado", "ativo")),
-    contar("testimonials", (q) => q.eq("estado", "pendente")),
-    contar("sessions", (q) => q.gte("data", hoje).neq("estado", "cancelada")),
+    contar("voluntarios", (q) => q.eq("estado", "ativo")),
+    contar("testemunhos", (q) => q.eq("estado", "pendente")),
+    contar("visitas", (q) => q.gte("data", hoje).neq("estado", "cancelada")),
   ]);
 
   const cartoes = [

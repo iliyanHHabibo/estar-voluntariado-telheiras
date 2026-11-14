@@ -31,7 +31,7 @@ async function Conteudo({ searchParams }: { searchParams: PageProps<"/conta">["s
   const u = await exigirUtilizador("/conta");
   const supabase = await createClient();
   const { data: perfil } = await supabase
-    .from("profiles")
+    .from("voluntarios")
     .select("nome, telefone, estado, encarregado_nome")
     .eq("id", u.id)
     .maybeSingle();
@@ -42,11 +42,11 @@ async function Conteudo({ searchParams }: { searchParams: PageProps<"/conta">["s
   }
 
   const { data: interesses } = await supabase
-    .from("volunteer_interests")
-    .select("activities(nome)")
-    .eq("volunteer_id", u.id);
+    .from("voluntario_interesses")
+    .select("atividades(nome)")
+    .eq("voluntario_id", u.id);
   const nomesInteresses = (interesses ?? [])
-    .map((i) => (i.activities as unknown as { nome: string } | null)?.nome)
+    .map((i) => (i.atividades as unknown as { nome: string } | null)?.nome)
     .filter(Boolean);
 
   const { "bem-vindo": bemVindo } = await searchParams;

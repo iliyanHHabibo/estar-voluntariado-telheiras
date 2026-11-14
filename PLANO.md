@@ -281,19 +281,19 @@ Só há perfil de **admin**, e cada admin vê tudo. São pelo menos 5 contas, ca
 
 | Tabela | Conteúdo |
 |---|---|
-| `profiles` | voluntário: nome, email, telefone, data de nascimento, encarregado (nome/telefone/email), autorização, atividades de interesse, estado, consentimentos (com data) |
-| `admin_users` | quem é admin |
-| `admin_notes` | notas internas sobre voluntários (só admins) |
-| `activities` | nome, descrição, morada, mín./máx. de voluntários, responsável, contacto, regras, ativa |
-| `activity_hours` | horário por dia da semana (abre, fecha) |
-| `activity_closures` | dias de fecho (data, motivo) |
-| `availability_periods` | mês, data de abertura, data de fecho |
-| `availabilities` | voluntário, dia, início, fim, atividade (ou "qualquer"), observações |
-| `sessions` | visita: atividade, dia, início, fim, estado, confirmada pelo responsável, notas |
-| `assignments` | visita ↔ voluntário, estado, datas de confirmação e cancelamento, motivo, presença |
-| `testimonials` | autor, nome a mostrar ou anónimo, atividade, texto original, texto publicado, estado, destaque, quem reviu |
-| `audit_log` | admin, ação, alvo, data |
-| `email_log` | que email foi enviado a quem e quando (evita lembretes duplicados) |
+| `voluntarios` | voluntário: nome, email, telefone, data de nascimento, encarregado (nome/telefone/email), autorização, atividades de interesse, estado, consentimentos (com data) |
+| `admins` | quem é admin |
+| `notas_admin` | notas internas sobre voluntários (só admins) |
+| `atividades` | nome, descrição, morada, mín./máx. de voluntários, responsável, contacto, regras, ativa |
+| `atividade_horarios` | horário por dia da semana (abre, fecha) |
+| `atividade_fechos` | dias de fecho (data, motivo) |
+| `periodos_disponibilidade` | mês, data de abertura, data de fecho |
+| `disponibilidades` | voluntário, dia, início, fim, atividade (ou "qualquer"), observações |
+| `visitas` | visita: atividade, dia, início, fim, estado, confirmada pelo responsável, notas |
+| `alocacoes` | visita ↔ voluntário, estado, datas de confirmação e cancelamento, motivo, presença |
+| `testemunhos` | autor, nome a mostrar ou anónimo, atividade, texto original, texto publicado, estado, destaque, quem reviu |
+| `auditoria` | admin, ação, alvo, data |
+| `registo_emails` | que email foi enviado a quem e quando (evita lembretes duplicados) |
 
 ---
 

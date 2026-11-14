@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Container, PageHeader, Section } from "@/components/ui";
-import { REGRAS_GERAIS } from "@/lib/activities";
+import { REGRAS_GERAIS } from "@/lib/atividades";
 import { SITE } from "@/lib/site";
 
 export const metadata: Metadata = {

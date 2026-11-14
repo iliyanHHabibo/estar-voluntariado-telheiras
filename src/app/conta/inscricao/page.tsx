@@ -27,11 +27,11 @@ async function Conteudo() {
   const u = await exigirUtilizador("/conta/inscricao");
   const supabase = await createClient();
 
-  const { data: perfil } = await supabase.from("profiles").select("id").eq("id", u.id).maybeSingle();
+  const { data: perfil } = await supabase.from("voluntarios").select("id").eq("id", u.id).maybeSingle();
   if (perfil) redirect("/conta");
 
   const { data: atividades } = await supabase
-    .from("activities")
+    .from("atividades")
     .select("id, nome")
     .eq("ativa", true)
     .order("ordem");

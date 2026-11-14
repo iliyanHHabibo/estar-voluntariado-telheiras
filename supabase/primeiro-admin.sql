@@ -7,7 +7,7 @@
 -- Os restantes admins são adicionados a partir do próprio site (Admin → Admins).
 -- =============================================================================
 
-insert into public.admins (user_id)
+insert into public.admins (utilizador_id)
 select id from auth.users where lower(email) = lower('O-TEU-EMAIL@exemplo.com')
 on conflict do nothing
-returning user_id;
+returning utilizador_id;

@@ -5,7 +5,7 @@
 
 begin;
 
-insert into public.activities (slug, nome, resumo, descricao, regras, min_voluntarios, max_voluntarios, ordem)
+insert into public.atividades (slug, nome, resumo, descricao, regras, min_voluntarios, max_voluntarios, ordem)
 values
   ('clinica-sao-jose',
    'Clínica de S. José — Unidade 4',
@@ -24,27 +24,27 @@ values
 on conflict (slug) do nothing;
 
 -- Clínica: todos os dias, 10h–18h
-insert into public.activity_hours (activity_id, dia_semana, abre, fecha)
+insert into public.atividade_horarios (atividade_id, dia_semana, abre, fecha)
 select a.id, d, time '10:00', time '18:00'
-from public.activities a, generate_series(1, 7) d
+from public.atividades a, generate_series(1, 7) d
 where a.slug = 'clinica-sao-jose'
 on conflict do nothing;
 
 -- Centro de Dia: dias úteis, 10h–17h
-insert into public.activity_hours (activity_id, dia_semana, abre, fecha)
+insert into public.atividade_horarios (atividade_id, dia_semana, abre, fecha)
 select a.id, d, time '10:00', time '17:00'
-from public.activities a, generate_series(1, 5) d
+from public.atividades a, generate_series(1, 5) d
 where a.slug = 'centro-de-dia'
 on conflict do nothing;
 
-insert into public.activity_contacts (activity_id)
-select id from public.activities
+insert into public.atividade_contactos (atividade_id)
+select id from public.atividades
 on conflict do nothing;
 
 -- Feriados nacionais que caem até ao fim de 2027 (fecham o Centro de Dia; a clínica mantém-se)
-insert into public.activity_closures (activity_id, data, motivo)
+insert into public.atividade_fechos (atividade_id, data, motivo)
 select a.id, f.data, f.motivo
-from public.activities a,
+from public.atividades a,
      (values (date '2026-12-01', 'Restauração da Independência'),
              (date '2026-12-08', 'Imaculada Conceição'),
              (date '2026-12-25', 'Natal'),

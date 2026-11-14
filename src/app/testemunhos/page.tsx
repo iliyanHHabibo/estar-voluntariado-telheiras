@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { ButtonLink, Container, PageHeader, Section } from "@/components/ui";
 import { SITE } from "@/lib/site";
-import { TESTEMUNHOS } from "@/lib/testimonials";
+import { TESTEMUNHOS } from "@/lib/testemunhos";
 
 export const metadata: Metadata = {
   title: "Testemunhos",
