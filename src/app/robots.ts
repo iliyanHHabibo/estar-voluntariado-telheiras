@@ -5,5 +5,5 @@ export default function robots(): MetadataRoute.Robots {
   if (process.env.NEXT_PUBLIC_INDEXAVEL !== "true") {
     return { rules: { userAgent: "*", disallow: "/" } };
   }
-  return { rules: { userAgent: "*", allow: "/", disallow: ["/admin", "/conta", "/api"] } };
+  return { rules: { userAgent: "*", allow: "/", disallow: ["/admin", "/conta", "/entrar", "/auth", "/api"] } };
 }

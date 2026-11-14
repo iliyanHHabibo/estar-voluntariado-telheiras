@@ -21,5 +21,5 @@ export const NAV = [
   { href: "/faq", label: "Perguntas" },
 ] as const;
 
-/** Enquanto o login não existe, a inscrição aponta para uma página informativa. */
-export const ROTA_INSCRICAO = "/inscrever";
+/** Inscrever-se e entrar são o mesmo passo: email → código. */
+export const ROTA_INSCRICAO = "/entrar";

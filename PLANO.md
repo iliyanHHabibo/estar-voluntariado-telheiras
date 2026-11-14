@@ -205,7 +205,8 @@ Só há perfil de **admin**, e cada admin vê tudo. São pelo menos 5 contas, ca
 ## 9. Segurança
 
 **Contas e acessos**
-- **Admins:** password forte + **2FA obrigatório** (código numa app do telemóvel). Só entram por convite e ninguém se consegue registar como admin.
+- **Admins:** código/link por email + **2FA obrigatório** (código numa app do telemóvel). Sem passwords, que se podem reutilizar ou roubar. Só se tornam admins por decisão de outro admin (ou, o primeiro, no Supabase).
+- **O 2FA é exigido pela própria base de dados:** um admin que entre só com o email (sem o 2FA) não consegue ler nenhum dado pessoal.
 - **Voluntários:** login por link enviado por email, sem passwords que se possam roubar.
 - **Sessões** guardadas em cookies `httpOnly`/`secure`, que expiram.
 
@@ -340,6 +341,7 @@ Só há perfil de **admin**, e cada admin vê tudo. São pelo menos 5 contas, ca
 | Requisitos dos locais | nenhum por agora |
 | Responsáveis das atividades | não usam o site; os admins confirmam com eles |
 | Perfis | só admin (≥ 5), cada um com 2FA |
+| Login | sem passwords: código/link por email para todos; admins + 2FA (app de autenticação) |
 | Calendário | disponibilidades de 15 a 25; alocação até ao fim do mês; confirmação até dia 1 |
 | Repositório | GitHub, privado, conta pessoal, mais 1 colaborador |
 | Domínio | nenhum por agora; testes em `*.vercel.app` |

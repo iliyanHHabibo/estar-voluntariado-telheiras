@@ -29,9 +29,12 @@ export function MainNav() {
             </Link>
           );
         })}
+        <Link href="/conta" className="ml-2 rounded-full px-4 py-2 text-[0.95rem] font-medium hover:bg-cinza">
+          Entrar
+        </Link>
         <Link
           href={ROTA_INSCRICAO}
-          className="ml-3 inline-flex min-h-11 items-center rounded-full bg-verde-vivo px-6 text-[0.95rem] font-semibold text-tinta transition-colors hover:bg-verde-vivo-hover"
+          className="ml-1 inline-flex min-h-11 items-center rounded-full bg-verde-vivo px-6 text-[0.95rem] font-semibold text-tinta transition-colors hover:bg-verde-vivo-hover"
         >
           Quero ser voluntário
         </Link>
@@ -68,6 +71,11 @@ export function MainNav() {
                 </Link>
               </li>
             ))}
+            <li>
+              <Link href="/conta" onClick={() => setAberto(false)} className="block border-b border-black/5 py-4 text-lg font-medium">
+                Entrar / A minha conta
+              </Link>
+            </li>
           </ul>
           <Link
             href={ROTA_INSCRICAO}
