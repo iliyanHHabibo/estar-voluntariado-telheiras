@@ -1,0 +1,107 @@
+@import "tailwindcss";
+
+/* ESTAR — design tokens
+   Cores tiradas do site original (Canva). O verde vivo é usado em botões
+   com texto escuro, porque texto branco sobre #00C060 não tem contraste suficiente. */
+@theme {
+  --color-verde: #0b5534;
+  --color-verde-escuro: #073d25;
+  --color-verde-vivo: #00c060;
+  --color-verde-vivo-hover: #14d673;
+  --color-cinza: #e1e3df;
+  --color-cinza-claro: #f1f2ef;
+  --color-tinta: #101512;
+  --color-tinta-suave: #3d4540;
+  --color-aviso: #b45309;
+  --color-erro: #b91c1c;
+
+  --font-display: "Unbounded Variable", "Arial Black", system-ui, sans-serif;
+  --font-sans: "IBM Plex Sans Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: #ffffff;
+  color: var(--color-tinta);
+  font-family: var(--font-sans);
+  font-size: 1.0625rem; /* 17px — confortável de ler no telemóvel */
+  line-height: 1.65;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Foco bem visível para quem navega com teclado */
+:focus-visible {
+  outline: 3px solid var(--color-verde-vivo);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+::selection {
+  background: var(--color-verde-vivo);
+  color: var(--color-tinta);
+}
+
+/* Títulos: maiúsculas, letra larga (como no site original) */
+.titulo {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  line-height: 1.12;
+  font-weight: 500;
+  text-wrap: balance;
+}
+
+/* Texto corrido em páginas legais / informativas */
+.prosa h2 {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  font-size: 1.15rem;
+  line-height: 1.3;
+  margin: 2.5rem 0 0.75rem;
+  font-weight: 500;
+}
+.prosa h3 {
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin: 1.75rem 0 0.5rem;
+}
+.prosa p,
+.prosa ul,
+.prosa ol {
+  margin: 0.85rem 0;
+}
+.prosa ul {
+  list-style: disc;
+  padding-left: 1.4rem;
+}
+.prosa ol {
+  list-style: decimal;
+  padding-left: 1.4rem;
+}
+.prosa li {
+  margin: 0.35rem 0;
+}
+.prosa a {
+  color: var(--color-verde);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  font-weight: 500;
+}
+.prosa a:hover {
+  color: var(--color-verde-escuro);
+}
