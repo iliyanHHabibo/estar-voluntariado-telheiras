@@ -246,6 +246,7 @@ create table private.definicoes (
   exigir_2fa_admins boolean not null default true
 );
 insert into private.definicoes default values;
+alter table private.definicoes enable row level security;  -- sem políticas: só funções do sistema a leem
 revoke all on private.definicoes from public, anon, authenticated;
 
 create function private.exige_2fa() returns boolean
