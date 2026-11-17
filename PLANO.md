@@ -95,7 +95,7 @@ O site mantém a identidade do site atual no Canva.
    - "E se não puder ir?"
    - "Qual a idade mínima?"
    - "Como são usados os meus dados?"
-7. **Contactos:** `estar.voluntariado@gmail.com`.
+7. **Contactos:** `voluntariado.estar@gmail.com`.
 8. **Política de Privacidade** e **Termos**.
 
 ---
@@ -197,7 +197,7 @@ Só há perfil de **admin**, e cada admin vê tudo. São pelo menos 5 contas, ca
 - **(Futuro)** SMS ou WhatsApp, que têm custo por mensagem.
 
 **Envio dos emails:**
-- **Durante os testes:** através do Gmail `estar.voluntariado@gmail.com`, com uma password de aplicação (cerca de 500 emails/dia).
+- **Durante os testes:** através do Gmail `voluntariado.estar@gmail.com`, com uma password de aplicação (cerca de 500 emails/dia).
 - **Com domínio próprio:** através do Resend (gratuito até 3000/mês), com remetente do tipo `ola@<dominio>`. Os emails chegam melhor e não caem no spam.
 
 ---
@@ -303,7 +303,7 @@ Só há perfil de **admin**, e cada admin vê tudo. São pelo menos 5 contas, ca
 - [ ] Instalar o Node.js (LTS) e o Git no PC
 - [ ] Criar contas: GitHub (com 2FA), Supabase, Vercel e Cloudflare
 - [ ] Criar o repositório privado `estar` no GitHub e convidar o colaborador
-- [ ] Criar uma password de aplicação no Gmail `estar.voluntariado@gmail.com` (é preciso ter o 2FA do Gmail ativo)
+- [ ] Criar uma password de aplicação no Gmail `voluntariado.estar@gmail.com` (é preciso ter o 2FA do Gmail ativo)
 
 ### Fase 1 — MVP
 - [ ] Estrutura do projeto, design base (cores, fontes, componentes)

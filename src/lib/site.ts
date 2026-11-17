@@ -7,7 +7,7 @@ export const SITE = {
   slogan: "Às vezes, basta ESTAR.",
   descricao:
     "Projeto de voluntariado do Grupo de Jovens da Paróquia de Telheiras que aproxima gerações através do nosso tempo e da nossa presença.",
-  email: "estar.voluntariado@gmail.com",
+  email: "voluntariado.estar@gmail.com",
   idadeMinima: 16,
   /** Dias do mês em que os voluntários podem indicar disponibilidades para o mês seguinte. */
   janelaDisponibilidades: { de: 15, ate: 25 },

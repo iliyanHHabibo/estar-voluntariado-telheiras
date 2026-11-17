@@ -42,13 +42,13 @@ que retiram permissões por omissão) — podes confirmar.
 
 O Supabase, sem isto, só envia 2–3 emails por hora e só para a equipa do projeto.
 
-1. Na conta Google `estar.voluntariado@gmail.com`: ativa a **Verificação em 2 passos** e cria uma
+1. Na conta Google `voluntariado.estar@gmail.com`: ativa a **Verificação em 2 passos** e cria uma
    **Palavra-passe de aplicação** em [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords) (nome: "Supabase ESTAR").
 2. No Supabase, **Enable custom SMTP**:
-   - Sender email: `estar.voluntariado@gmail.com`
+   - Sender email: `voluntariado.estar@gmail.com`
    - Sender name: `ESTAR`
    - Host: `smtp.gmail.com` · Port: `465`
-   - Username: `estar.voluntariado@gmail.com`
+   - Username: `voluntariado.estar@gmail.com`
    - Password: a palavra-passe de aplicação (16 letras)
 3. Em *Authentication → Rate Limits*, põe **Rate limit for sending emails** em ~`60` por hora.
 
