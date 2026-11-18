@@ -34,6 +34,8 @@ export async function enviarCodigo(_prev: EstadoEntrar, formData: FormData): Pro
   });
 
   if (error) {
+    // Detalhe técnico só no terminal/registos do servidor (nunca no ecrã). Sem o email da pessoa.
+    console.error("[entrar] falha ao enviar código:", error.status, error.code, error.message);
     // Não revelamos se o email existe ou não. Só tratamos limites e captcha.
     if (/captcha/i.test(error.message)) {
       return { etapa: "email", email: email.data, erro: "A verificação anti-robô falhou. Tenta outra vez." };
@@ -58,6 +60,7 @@ export async function verificarCodigo(_prev: EstadoEntrar, formData: FormData): 
   const supabase = await createClient();
   const { error } = await supabase.auth.verifyOtp({ email: email.data, token: codigo.data, type: "email" });
   if (error) {
+    console.error("[entrar] falha ao verificar código:", error.status, error.code, error.message);
     return {
       etapa: "codigo",
       email: email.data,

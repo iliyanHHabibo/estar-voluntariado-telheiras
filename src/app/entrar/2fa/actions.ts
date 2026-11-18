@@ -35,7 +35,10 @@ export async function iniciarConfiguracao(): Promise<EstadoConfig> {
     issuer: "ESTAR",
     friendlyName: `ESTAR ${new Date().toISOString().slice(0, 16)}`,
   });
-  if (error || !data) return { erro: "Não foi possível iniciar a configuração. Tenta outra vez." };
+  if (error || !data) {
+    console.error("[2fa] falha ao iniciar configuração:", error?.status, error?.code, error?.message);
+    return { erro: "Não foi possível iniciar a configuração. Tenta outra vez." };
+  }
   return { factorId: data.id, qr: data.totp.qr_code, segredo: data.totp.secret };
 }
 
@@ -62,6 +65,7 @@ export async function verificarCodigo2fa(_prev: EstadoVerificar, formData: FormD
     code: dados.data.codigo,
   });
   if (error) {
+    console.error("[2fa] falha ao verificar código:", error.status, error.code, error.message);
     return {
       erro: /rate|too many/i.test(error.message)
         ? "Demasiadas tentativas. Espera um pouco."

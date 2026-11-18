@@ -90,6 +90,7 @@ export async function criarPerfil(_prev: EstadoInscricao, formData: FormData): P
   });
   if (error) {
     if (error.code === "23505") redirect("/conta"); // já tinha perfil
+    console.error("[inscricao] falha ao criar perfil:", error.code, error.message);
     return { erro: mensagemDeErro(error, "Não foi possível guardar a inscrição. Tenta outra vez."), campos };
   }
 

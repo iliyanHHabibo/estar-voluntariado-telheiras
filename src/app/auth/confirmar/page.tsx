@@ -61,7 +61,10 @@ async function confirmar(formData: FormData) {
 
   const supabase = await createClient();
   const { error } = await supabase.auth.verifyOtp({ token_hash: token, type: "email" });
-  if (error) redirect(`/auth/confirmar?token_hash=${encodeURIComponent(token)}&erro=1`);
+  if (error) {
+    console.error("[auth/confirmar] falha ao validar link:", error.status, error.code, error.message);
+    redirect(`/auth/confirmar?token_hash=${encodeURIComponent(token)}&erro=1`);
+  }
 
   redirect(await destinoDepoisDeEntrar());
 }
