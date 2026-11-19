@@ -10,6 +10,13 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
+/**
+ * A área de admin confirma sempre quem é a pessoa (e o 2FA) antes de mostrar alguma coisa,
+ * por isso não pode ser "instantânea". Isto desliga só a validação de navegação instantânea
+ * do modo de desenvolvimento (evita avisos ao simular navegações sem sessão).
+ */
+export const instant = false;
+
 const NAV_ADMIN = [
   { href: "/admin", label: "Painel" },
   { href: "/admin/admins", label: "Admins" },
