@@ -32,7 +32,7 @@ async function Conteudo({ searchParams }: { searchParams: PageProps<"/conta">["s
   const supabase = await createClient();
   const { data: perfil } = await supabase
     .from("voluntarios")
-    .select("nome, telefone, estado, encarregado_nome")
+    .select("nome, telefone, estado, encarregado_nome, encarregado_telefone, encarregado_email")
     .eq("id", u.id)
     .maybeSingle();
 
@@ -89,6 +89,14 @@ async function Conteudo({ searchParams }: { searchParams: PageProps<"/conta">["s
               <>
                 <dt className="text-tinta-suave">Encarregado de educação</dt>
                 <dd>{perfil.encarregado_nome}</dd>
+                <dt className="text-tinta-suave">Telemóvel do encarregado</dt>
+                <dd>{perfil.encarregado_telefone ?? "—"}</dd>
+                {perfil.encarregado_email && (
+                  <>
+                    <dt className="text-tinta-suave">Email do encarregado</dt>
+                    <dd className="break-all">{perfil.encarregado_email}</dd>
+                  </>
+                )}
               </>
             )}
             <dt className="text-tinta-suave">Atividades</dt>
