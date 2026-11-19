@@ -4,7 +4,7 @@ import { NAV, SITE } from "@/lib/site";
 
 export function SiteFooter() {
   return (
-    <footer className="bg-tinta text-white">
+    <footer className="bg-tinta text-white print:hidden">
       <Container className="grid gap-12 py-14 sm:grid-cols-3">
         <div>
           <p className="titulo text-2xl">ESTAR</p>

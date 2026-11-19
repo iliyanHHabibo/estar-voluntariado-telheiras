@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
-import { CalendarDays, Download, LogOut, MessageSquareQuote, Shield } from "lucide-react";
+import { CalendarDays, FileText, LogOut, MessageSquareQuote, Shield } from "lucide-react";
 import { Container, PageHeader, Section } from "@/components/ui";
 import { Alerta } from "@/components/forms";
 import { exigirUtilizador, souAdmin } from "@/lib/auth";
@@ -103,9 +103,9 @@ async function Conteudo({ searchParams }: { searchParams: PageProps<"/conta">["s
             <Shield aria-hidden className="size-5" /> Área de administração
           </Link>
         )}
-        <a href="/conta/dados" className="flex items-center gap-3 rounded-2xl border-2 border-black/10 p-4 font-semibold hover:bg-cinza-claro">
-          <Download aria-hidden className="size-5" /> Descarregar os meus dados
-        </a>
+        <Link href="/conta/dados" className="flex items-center gap-3 rounded-2xl border-2 border-black/10 p-4 font-semibold hover:bg-cinza-claro">
+          <FileText aria-hidden className="size-5" /> Os meus dados (ver ou guardar em PDF)
+        </Link>
         <form action={sair}>
           <button type="submit" className="flex w-full items-center gap-3 rounded-2xl border-2 border-black/10 p-4 text-left font-semibold hover:bg-cinza-claro">
             <LogOut aria-hidden className="size-5" /> Sair

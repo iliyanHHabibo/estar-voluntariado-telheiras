@@ -6,7 +6,7 @@ import { Container } from "./ui";
 
 export function SiteHeader() {
   return (
-    <header className="sticky top-0 z-40 border-b border-black/10 bg-white/95 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-black/10 bg-white/95 backdrop-blur print:hidden">
       <Container className="relative flex h-18 items-center justify-between gap-4">
         <Link href="/" className="shrink-0 leading-none" aria-label="ESTAR — página inicial">
           <span className="titulo block text-2xl font-semibold tracking-wide">ESTAR</span>
