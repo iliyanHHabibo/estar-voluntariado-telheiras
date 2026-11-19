@@ -3,7 +3,7 @@ import { createServerClient } from "@supabase/ssr";
 import { COOKIE_OPTIONS, supabaseConfig } from "@/lib/supabase/config";
 
 /**
- * Corre antes das páginas privadas:
+ * Corre antes de cada página:
  *  1. renova a sessão do Supabase (cookies) quando está a expirar;
  *  2. quem não tem sessão e tenta abrir /conta ou /admin vai para /entrar.
  *
@@ -52,5 +52,6 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/conta/:path*", "/admin/:path*", "/entrar/:path*", "/auth/:path*"],
+  // Todas as páginas (para o cabeçalho saber se há sessão), exceto ficheiros estáticos
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|robots.txt|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff2?)$).*)"],
 };

@@ -3,47 +3,49 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
-import { useState } from "react";
-import { NAV, ROTA_INSCRICAO } from "@/lib/site";
+import { useState, type ReactNode } from "react";
+import { NAV } from "@/lib/site";
 
-export function MainNav() {
+/**
+ * Menu principal. As ligações de conta (Entrar / A minha conta / Sair) vêm do servidor
+ * (contaDesktop / contaMovel), porque dependem da sessão.
+ */
+export function MainNav({ contaDesktop, contaMovel }: { contaDesktop: ReactNode; contaMovel: ReactNode }) {
   const pathname = usePathname();
-  const [aberto, setAberto] = useState(false);
+  // O menu do telemóvel fica "aberto nesta página": ao mudar de página fecha sozinho
+  const [abertoEm, setAbertoEm] = useState<string | null>(null);
+  const aberto = abertoEm === pathname;
+  const setAberto = (v: boolean | ((atual: boolean) => boolean)) =>
+    setAbertoEm(((typeof v === "function" ? v(aberto) : v) ? pathname : null));
 
   return (
     <>
-      {/* Desktop */}
-      <nav aria-label="Principal" className="hidden items-center gap-1 lg:flex">
-        {NAV.map((item) => {
-          const ativo = pathname.startsWith(item.href);
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              aria-current={ativo ? "page" : undefined}
-              className={`rounded-full px-4 py-2 text-[0.95rem] font-medium transition-colors hover:bg-cinza ${
-                ativo ? "bg-cinza" : ""
-              }`}
-            >
-              {item.label}
-            </Link>
-          );
-        })}
-        <Link href="/conta" className="ml-2 rounded-full px-4 py-2 text-[0.95rem] font-medium hover:bg-cinza">
-          Entrar
-        </Link>
-        <Link
-          href={ROTA_INSCRICAO}
-          className="ml-1 inline-flex min-h-11 items-center rounded-full bg-verde-vivo px-6 text-[0.95rem] font-semibold text-tinta transition-colors hover:bg-verde-vivo-hover"
-        >
-          Quero ser voluntário
-        </Link>
-      </nav>
+      {/* Desktop (ecrãs largos) */}
+      <div className="hidden items-center gap-4 xl:flex">
+        <nav aria-label="Principal" className="flex items-center gap-1">
+          {NAV.map((item) => {
+            const ativo = pathname.startsWith(item.href);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                aria-current={ativo ? "page" : undefined}
+                className={`whitespace-nowrap rounded-full px-4 py-2 text-[0.95rem] font-medium transition-colors hover:bg-cinza ${
+                  ativo ? "bg-cinza" : ""
+                }`}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
+        </nav>
+        {contaDesktop}
+      </div>
 
-      {/* Telemóvel */}
+      {/* Telemóvel / ecrãs estreitos */}
       <button
         type="button"
-        className="inline-flex size-12 items-center justify-center rounded-full hover:bg-cinza lg:hidden"
+        className="inline-flex size-12 items-center justify-center rounded-full hover:bg-cinza xl:hidden"
         aria-expanded={aberto}
         aria-controls="menu-movel"
         aria-label={aberto ? "Fechar menu" : "Abrir menu"}
@@ -52,12 +54,12 @@ export function MainNav() {
         {aberto ? <X aria-hidden className="size-6" /> : <Menu aria-hidden className="size-6" />}
       </button>
 
-      {aberto && (
-        <nav
-          id="menu-movel"
-          aria-label="Principal"
-          className="absolute inset-x-0 top-full border-b border-black/10 bg-white px-5 pb-6 pt-2 shadow-lg lg:hidden"
-        >
+      <div
+        id="menu-movel"
+        hidden={!aberto}
+        className="absolute inset-x-0 top-full border-b border-black/10 bg-white px-5 pb-6 pt-2 shadow-lg xl:hidden"
+      >
+        <nav aria-label="Principal">
           <ul className="flex flex-col">
             {NAV.map((item) => (
               <li key={item.href}>
@@ -71,21 +73,10 @@ export function MainNav() {
                 </Link>
               </li>
             ))}
-            <li>
-              <Link href="/conta" onClick={() => setAberto(false)} className="block border-b border-black/5 py-4 text-lg font-medium">
-                Entrar / A minha conta
-              </Link>
-            </li>
           </ul>
-          <Link
-            href={ROTA_INSCRICAO}
-            onClick={() => setAberto(false)}
-            className="mt-5 flex min-h-12 items-center justify-center rounded-full bg-verde-vivo px-6 text-base font-semibold text-tinta"
-          >
-            Quero ser voluntário
-          </Link>
         </nav>
-      )}
+        {contaMovel}
+      </div>
     </>
   );
 }
