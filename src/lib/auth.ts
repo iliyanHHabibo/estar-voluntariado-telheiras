@@ -36,6 +36,17 @@ export async function exigirUtilizador(seguinte = "/conta"): Promise<Utilizador>
   return u;
 }
 
+export type PerfilVoluntario = { id: string; nome: string; estado: "ativo" | "inativo" };
+
+/** Sessão iniciada E inscrição feita. Quem ainda não se inscreveu vai para a inscrição. */
+export async function exigirVoluntario(seguinte: string): Promise<{ u: Utilizador; perfil: PerfilVoluntario }> {
+  const u = await exigirUtilizador(seguinte);
+  const supabase = await createClient();
+  const { data } = await supabase.from("voluntarios").select("id, nome, estado").eq("id", u.id).maybeSingle();
+  if (!data) redirect("/conta/inscricao");
+  return { u, perfil: data as PerfilVoluntario };
+}
+
 export async function souAdmin(): Promise<boolean> {
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("sou_admin");

@@ -23,14 +23,18 @@ Abre http://localhost:3000 no browser.
 | `npm run build` | Compila a versão de produção (e deteta erros) |
 | `npm start` | Corre a versão compilada |
 | `npm run lint` | Verifica o código |
+| `npm test` | Testes da lógica de datas, disponibilidades e ficheiros de calendário |
 
 ## Estado atual
 
 - [x] Fase 1A: design base e site público
 - [x] Fase 1B: base de dados com permissões (RLS) e testes; login por código/link de email; inscrição (com menores);
       2FA obrigatório para admins; gestão de admins; descarregar/apagar dados (RGPD); CSP e cookies httpOnly
-- [ ] Fase 1C: disponibilidades (calendário), planeamento do mês, visitas, testemunhos (envio e moderação),
-      voluntários e atividades no painel, emails de confirmação
+- [x] Fase 1C-1 (área do voluntário): calendário de disponibilidades (com "repetir todas as semanas"),
+      as minhas visitas (confirmar / não posso / ficheiro de calendário), enviar testemunhos, resumo da conta
+- [ ] Fase 1C-2 (área de admin): abrir períodos, planeamento do mês, visitas e alocações, voluntários,
+      atividades, moderação de testemunhos
+- [ ] Emails ("estás alocado", cancelamentos) e publicação online
 
 ## Onde mexer
 
@@ -43,6 +47,8 @@ Abre http://localhost:3000 no browser.
 | Cabeçalhos de segurança e CSP | `next.config.ts` |
 | Base de dados, permissões (RLS) | `supabase/migrations/` (nunca editar uma migração já aplicada: criar uma nova) |
 | Login, sessão, quem é admin | `src/lib/auth.ts`, `src/proxy.ts` |
+| Regras do calendário de disponibilidades | `src/lib/disponibilidade.ts` (testado em `disponibilidade.test.ts`) |
+| Dados de exemplo para experimentar visitas | `supabase/dados-de-teste.sql` |
 
 ## Testes das permissões da base de dados
 

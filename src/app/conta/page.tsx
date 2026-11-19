@@ -2,13 +2,15 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
-import { CalendarDays, FileText, LogOut, MessageSquareQuote, Shield } from "lucide-react";
+import { ArrowRight, CalendarDays, FileText, LogOut, MessageSquareQuote, Shield, Users } from "lucide-react";
 import { Container, PageHeader, Section } from "@/components/ui";
 import { Alerta } from "@/components/forms";
 import { exigirUtilizador, souAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { dataCurta, dataPorExtenso, hojeLisboa, horaTexto, rotuloMes } from "@/lib/tempo";
 import { sair } from "../entrar/actions";
 import { ApagarContaForm } from "./apagar-form";
+import { ContaNav } from "./conta-nav";
 
 export const metadata: Metadata = { title: "A minha conta", robots: { index: false } };
 
@@ -18,6 +20,7 @@ export default function Conta({ searchParams }: PageProps<"/conta">) {
       <PageHeader titulo="A minha conta" />
       <Section>
         <Container>
+          <ContaNav />
           <Suspense fallback={<p>A carregar…</p>}>
             <Conteudo searchParams={searchParams} />
           </Suspense>
@@ -49,6 +52,29 @@ async function Conteudo({ searchParams }: { searchParams: PageProps<"/conta">["s
     .map((i) => (i.atividades as unknown as { nome: string } | null)?.nome)
     .filter(Boolean);
 
+  // O que está a acontecer agora (para o resumo)
+  const hoje = hojeLisboa();
+  const [{ data: periodoAberto }, { data: alocacoes }] = await Promise.all([
+    supabase
+      .from("periodos_disponibilidade")
+      .select("mes, fecha_em")
+      .lte("abre_em", hoje)
+      .gte("fecha_em", hoje)
+      .order("mes")
+      .limit(1)
+      .maybeSingle(),
+    supabase
+      .from("alocacoes")
+      .select("estado, visitas!inner(data, inicio, estado)")
+      .eq("voluntario_id", u.id)
+      .in("estado", ["proposta", "confirmada"]),
+  ]);
+  const futuras = ((alocacoes ?? []) as unknown as { estado: string; visitas: { data: string; inicio: string; estado: string } }[])
+    .filter((a) => a.visitas.data >= hoje && a.visitas.estado === "comunicada")
+    .sort((a, b) => (a.visitas.data + a.visitas.inicio).localeCompare(b.visitas.data + b.visitas.inicio));
+  const porResponder = futuras.filter((a) => a.estado === "proposta").length;
+  const proxima = futuras.find((a) => a.estado === "confirmada")?.visitas;
+
   const { "bem-vindo": bemVindo } = await searchParams;
   const primeiroNome = perfil.nome.split(" ")[0];
 
@@ -64,16 +90,35 @@ async function Conteudo({ searchParams }: { searchParams: PageProps<"/conta">["s
         <h2 className="titulo text-2xl">Olá, {primeiroNome}</h2>
 
         <div className="grid gap-4 sm:grid-cols-2">
-          <div className="rounded-3xl bg-cinza-claro p-6">
-            <CalendarDays aria-hidden className="size-7 text-verde" />
-            <h3 className="mt-3 text-lg font-semibold">As minhas disponibilidades</h3>
-            <p className="mt-1 text-tinta-suave">Em breve: indica aqui, todos os meses, quando podes ir.</p>
-          </div>
-          <div className="rounded-3xl bg-cinza-claro p-6">
-            <MessageSquareQuote aria-hidden className="size-7 text-verde" />
-            <h3 className="mt-3 text-lg font-semibold">Enviar testemunho</h3>
-            <p className="mt-1 text-tinta-suave">Em breve: conta-nos como foi uma visita.</p>
-          </div>
+          <CartaoLink
+            href="/conta/disponibilidades"
+            icone={<CalendarDays aria-hidden className="size-7 text-verde" />}
+            titulo="As minhas disponibilidades"
+            destaque={Boolean(periodoAberto)}
+          >
+            {periodoAberto
+              ? `Está aberta a recolha para ${rotuloMes(periodoAberto.mes)}, até ${dataCurta(periodoAberto.fecha_em)}. Indica quando podes ir.`
+              : "De momento não há nenhuma recolha aberta. Normalmente é entre os dias 15 e 25 de cada mês."}
+          </CartaoLink>
+          <CartaoLink
+            href="/conta/visitas"
+            icone={<Users aria-hidden className="size-7 text-verde" />}
+            titulo="As minhas visitas"
+            destaque={porResponder > 0}
+          >
+            {porResponder > 0
+              ? `Tens ${porResponder} ${porResponder === 1 ? "visita à espera" : "visitas à espera"} da tua resposta.`
+              : proxima
+                ? `A próxima: ${dataPorExtenso(proxima.data)}, às ${horaTexto(proxima.inicio)}.`
+                : "Ainda não tens visitas marcadas."}
+          </CartaoLink>
+          <CartaoLink
+            href="/conta/testemunhos"
+            icone={<MessageSquareQuote aria-hidden className="size-7 text-verde" />}
+            titulo="Enviar testemunho"
+          >
+            Conta-nos como foi uma visita. A equipa lê e decide se publica.
+          </CartaoLink>
         </div>
 
         <div className="rounded-3xl border-2 border-black/10 p-6">
@@ -122,5 +167,35 @@ async function Conteudo({ searchParams }: { searchParams: PageProps<"/conta">["s
         <ApagarContaForm />
       </aside>
     </div>
+  );
+}
+
+function CartaoLink({
+  href,
+  icone,
+  titulo,
+  destaque,
+  children,
+}: {
+  href: string;
+  icone: React.ReactNode;
+  titulo: string;
+  destaque?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      className={`group flex flex-col rounded-3xl p-6 transition-colors ${
+        destaque ? "bg-verde text-white hover:bg-verde-escuro" : "bg-cinza-claro hover:bg-cinza"
+      }`}
+    >
+      <span className={destaque ? "[&_svg]:text-verde-vivo" : ""}>{icone}</span>
+      <h3 className="mt-3 text-lg font-semibold">{titulo}</h3>
+      <p className={`mt-1 ${destaque ? "text-white/90" : "text-tinta-suave"}`}>{children}</p>
+      <span className="mt-4 inline-flex items-center gap-2 font-semibold">
+        Abrir <ArrowRight aria-hidden className="size-4 transition-transform group-hover:translate-x-1" />
+      </span>
+    </Link>
   );
 }
