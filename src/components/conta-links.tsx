@@ -16,12 +16,12 @@ export async function ContaLinks({ variante }: { variante: "desktop" | "movel" }
     if (!u) {
       return (
         <div className="flex items-center gap-1">
-          <Link href="/entrar" className="whitespace-nowrap rounded-full px-4 py-2 text-[0.95rem] font-medium hover:bg-cinza">
+          <Link href="/entrar" className="whitespace-nowrap rounded-full px-2.5 py-2 text-[0.9rem] font-medium hover:bg-cinza">
             Entrar
           </Link>
           <Link
             href={ROTA_INSCRICAO}
-            className="inline-flex min-h-11 items-center whitespace-nowrap rounded-full bg-verde-vivo px-6 text-[0.95rem] font-semibold text-tinta transition-colors hover:bg-verde-vivo-hover"
+            className="inline-flex min-h-11 items-center whitespace-nowrap rounded-full bg-verde-vivo px-4 text-[0.9rem] font-semibold text-tinta transition-colors hover:bg-verde-vivo-hover"
           >
             Quero ser voluntário
           </Link>
@@ -32,7 +32,7 @@ export async function ContaLinks({ variante }: { variante: "desktop" | "movel" }
       <div className="flex items-center gap-1">
         <Link
           href={admin ? "/admin" : "/conta"}
-          className="inline-flex min-h-11 items-center gap-2 whitespace-nowrap rounded-full bg-verde-vivo px-5 text-[0.95rem] font-semibold text-tinta transition-colors hover:bg-verde-vivo-hover"
+          className="inline-flex min-h-11 items-center gap-2 whitespace-nowrap rounded-full bg-verde-vivo px-4 text-[0.9rem] font-semibold text-tinta transition-colors hover:bg-verde-vivo-hover"
         >
           {admin ? <Shield aria-hidden className="size-4" /> : <UserRound aria-hidden className="size-4" />}
           {admin ? "Admin" : "A minha conta"}
@@ -40,7 +40,7 @@ export async function ContaLinks({ variante }: { variante: "desktop" | "movel" }
         <form action={sair}>
           <button
             type="submit"
-            className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-4 py-2 text-[0.95rem] font-medium hover:bg-cinza"
+            className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-2 text-[0.9rem] font-medium hover:bg-cinza"
           >
             <LogOut aria-hidden className="size-4" /> Sair
           </button>
@@ -83,5 +83,5 @@ export async function ContaLinks({ variante }: { variante: "desktop" | "movel" }
 
 /** Espaço reservado enquanto a sessão é lida (evita saltos no cabeçalho). */
 export function ContaLinksEspera({ variante }: { variante: "desktop" | "movel" }) {
-  return variante === "desktop" ? <div aria-hidden className="h-11 w-56" /> : <div aria-hidden className="mt-5 h-28" />;
+  return variante === "desktop" ? <div aria-hidden className="h-11 w-48" /> : <div aria-hidden className="mt-5 h-28" />;
 }

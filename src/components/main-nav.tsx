@@ -20,9 +20,9 @@ export function MainNav({ contaDesktop, contaMovel }: { contaDesktop: ReactNode;
 
   return (
     <>
-      {/* Desktop (ecrãs largos) */}
-      <div className="hidden items-center gap-4 xl:flex">
-        <nav aria-label="Principal" className="flex items-center gap-1">
+      {/* Computador (a partir de 1024px; mais compacto até 1280px) */}
+      <div className="hidden items-center gap-2 lg:flex">
+        <nav aria-label="Principal" className="flex items-center">
           {NAV.map((item) => {
             const ativo = pathname.startsWith(item.href);
             return (
@@ -30,7 +30,7 @@ export function MainNav({ contaDesktop, contaMovel }: { contaDesktop: ReactNode;
                 key={item.href}
                 href={item.href}
                 aria-current={ativo ? "page" : undefined}
-                className={`whitespace-nowrap rounded-full px-4 py-2 text-[0.95rem] font-medium transition-colors hover:bg-cinza ${
+                className={`whitespace-nowrap rounded-full px-2.5 py-2 text-[0.9rem] font-medium transition-colors hover:bg-cinza ${
                   ativo ? "bg-cinza" : ""
                 }`}
               >
@@ -42,10 +42,10 @@ export function MainNav({ contaDesktop, contaMovel }: { contaDesktop: ReactNode;
         {contaDesktop}
       </div>
 
-      {/* Telemóvel / ecrãs estreitos */}
+      {/* Telemóvel / tablet (menos de 1024px) */}
       <button
         type="button"
-        className="inline-flex size-12 items-center justify-center rounded-full hover:bg-cinza xl:hidden"
+        className="inline-flex size-12 items-center justify-center rounded-full hover:bg-cinza lg:hidden"
         aria-expanded={aberto}
         aria-controls="menu-movel"
         aria-label={aberto ? "Fechar menu" : "Abrir menu"}
@@ -57,7 +57,7 @@ export function MainNav({ contaDesktop, contaMovel }: { contaDesktop: ReactNode;
       <div
         id="menu-movel"
         hidden={!aberto}
-        className="absolute inset-x-0 top-full border-b border-black/10 bg-white px-5 pb-6 pt-2 shadow-lg xl:hidden"
+        className="absolute inset-x-0 top-full border-b border-black/10 bg-white px-5 pb-6 pt-2 shadow-lg lg:hidden"
       >
         <nav aria-label="Principal">
           <ul className="flex flex-col">
