@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useActionState, useState } from "react";
 import { criarPerfil, type EstadoInscricao } from "../actions";
 import { Alerta, BotaoSubmeter, CAMPO, Rotulo } from "@/components/forms";
+import { SITE } from "@/lib/site";
 
 type Atividade = { id: string; nome: string };
 
@@ -30,7 +31,9 @@ export function InscricaoForm({ atividades, email }: { atividades: Atividade[]; 
   const c = estado.campos ?? {};
   const [nascimento, setNascimento] = useState(c.data_nascimento ?? "");
   const anos = idade(nascimento);
-  const menor = anos !== null && anos < 18;
+  const abaixoDaIdade = anos !== null && anos < SITE.idadeMinima;
+  // Só pedimos o encarregado a quem PODE ser voluntário mas ainda não tem 18 anos
+  const menor = anos !== null && anos >= SITE.idadeMinima && anos < 18;
 
   return (
     <form action={acao} className="space-y-8">
@@ -59,8 +62,8 @@ export function InscricaoForm({ atividades, email }: { atividades: Atividade[]; 
             onChange={(e) => setNascimento(e.target.value)}
             className={`${CAMPO} max-w-xs`}
           />
-          {anos !== null && anos < 16 && (
-            <p className="mt-2 text-sm text-erro">É preciso ter pelo menos 16 anos para ser voluntário.</p>
+          {abaixoDaIdade && (
+            <p className="mt-2 text-sm text-erro">É preciso ter pelo menos {SITE.idadeMinima} anos para ser voluntário.</p>
           )}
         </div>
       </fieldset>
