@@ -1,5 +1,6 @@
 import "server-only";
 import { cookies } from "next/headers";
+import { connection } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { COOKIE_OPTIONS, supabaseConfig } from "./config";
 
@@ -8,6 +9,9 @@ import { COOKIE_OPTIONS, supabaseConfig } from "./config";
  * Age sempre COMO o utilizador com sessão iniciada — as políticas RLS aplicam-se.
  */
 export async function createClient() {
+  // Dados pessoais: só se leem no momento de um pedido real (nunca em pré-renderização
+  // nem em prefetch). Também evita o aviso "Date.now() while prerendering" do Next.
+  await connection();
   const { url, key } = supabaseConfig();
   const cookieStore = await cookies();
 
