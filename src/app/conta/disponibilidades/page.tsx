@@ -73,7 +73,7 @@ async function Conteudo({ searchParams }: { searchParams: PageProps<"/conta/disp
   const [{ data: atividades }, { data: horarios }, { data: fechos }, { data: minhas }, { data: nota }] = await Promise.all([
     supabase.from("atividades").select("id, nome").eq("ativa", true).order("ordem"),
     supabase.from("atividade_horarios").select("atividade_id, dia_semana, abre, fecha"),
-    supabase.from("atividade_fechos").select("atividade_id, data").gte("data", mes).lt("data", fimDoMes),
+    supabase.from("atividade_fechos").select("atividade_id, data, motivo").gte("data", mes).lt("data", fimDoMes),
     supabase
       .from("disponibilidades")
       .select("id, data, inicio, fim, atividade_id")

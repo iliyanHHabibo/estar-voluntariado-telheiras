@@ -6,9 +6,9 @@ import { exigirVoluntario } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { mensagemDeErro } from "@/lib/erros";
 import { hojeLisboa, minutos } from "@/lib/tempo";
-import { DURACAO_MINIMA, diasComJanelas, repetirSemanalmente, sobrepoe } from "@/lib/disponibilidade";
+import { DURACAO_MINIMA, diasComJanelas, explicarIgnoradas, repetirSemanalmente, sobrepoe } from "@/lib/disponibilidade";
 
-export type EstadoDisp = { ok?: string; erro?: string; n?: number };
+export type EstadoDisp = { ok?: string; aviso?: string; erro?: string; n?: number };
 
 const ROTA = "/conta/disponibilidades";
 const data = z.iso.date();
@@ -120,7 +120,7 @@ export async function repetirTodasAsSemanas(_prev: EstadoDisp, fd: FormData): Pr
   const [{ data: atividades }, { data: horarios }, { data: fechos }, { data: minhas }] = await Promise.all([
     supabase.from("atividades").select("id, nome").eq("ativa", true),
     supabase.from("atividade_horarios").select("atividade_id, dia_semana, abre, fecha"),
-    supabase.from("atividade_fechos").select("atividade_id, data").gte("data", mes).lt("data", proximoMes(mes)),
+    supabase.from("atividade_fechos").select("atividade_id, data, motivo").gte("data", mes).lt("data", proximoMes(mes)),
     supabase
       .from("disponibilidades")
       .select("data, inicio, fim, atividade_id")
@@ -147,8 +147,11 @@ export async function repetirTodasAsSemanas(_prev: EstadoDisp, fd: FormData): Pr
     hoje: hojeLisboa(),
   });
 
+  const nomeAtividade = atividade_id ? ((atividades ?? []).find((a) => a.id === atividade_id)?.nome ?? null) : null;
+  const ign = explicarIgnoradas(res.ignoradas, nomeAtividade);
+
   if (res.adicionar.length === 0) {
-    return { erro: "Não foi possível adicionar nenhum dia: " + explicarIgnorados(res.ignoradas) + "." };
+    return { erro: "Não foi possível adicionar nenhum dia." + (ign ? ` Ficou de fora: ${ign}.` : "") };
   }
 
   const { error } = await supabase.from("disponibilidades").insert(
@@ -167,9 +170,9 @@ export async function repetirTodasAsSemanas(_prev: EstadoDisp, fd: FormData): Pr
 
   revalidatePath(ROTA);
   const n = res.adicionar.length;
-  const ign = explicarIgnorados(res.ignoradas);
   return {
-    ok: `Adicionadas ${n} ${n === 1 ? "disponibilidade" : "disponibilidades"}.` + (ign ? ` Ignorámos: ${ign}.` : ""),
+    ok: `Adicionadas ${n} ${n === 1 ? "disponibilidade" : "disponibilidades"}.`,
+    aviso: ign ? `Ficou de fora: ${ign}.` : undefined,
     n,
   };
 }
@@ -177,16 +180,6 @@ export async function repetirTodasAsSemanas(_prev: EstadoDisp, fd: FormData): Pr
 function proximoMes(mes: string): string {
   const [a, m] = mes.split("-").map(Number);
   return m === 12 ? `${a + 1}-01-01` : `${a}-${String(m + 1).padStart(2, "0")}-01`;
-}
-
-function explicarIgnorados(i: { fechado: number; foraDoHorario: number; jaTinha: number; passado: number }): string {
-  const partes: string[] = [];
-  const dias = (n: number) => `${n} ${n === 1 ? "dia" : "dias"}`;
-  if (i.foraDoHorario) partes.push(`${dias(i.foraDoHorario)} fora do horário da atividade (ou em que fecha)`);
-  if (i.fechado) partes.push(`${dias(i.fechado)} sem atividades abertas`);
-  if (i.jaTinha) partes.push(`${dias(i.jaTinha)} em que já tinhas disponibilidade`);
-  if (i.passado) partes.push(`${dias(i.passado)} que já passaram`);
-  return partes.join("; ");
 }
 
 // ---------------------------------------------------------------- observações do mês

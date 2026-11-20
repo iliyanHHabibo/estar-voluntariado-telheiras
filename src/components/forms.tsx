@@ -43,11 +43,12 @@ export function BotaoSubmeter({
   );
 }
 
-export function Alerta({ tipo, children }: { tipo: "erro" | "info" | "sucesso"; children: ReactNode }) {
+export function Alerta({ tipo, children }: { tipo: "erro" | "info" | "sucesso" | "aviso"; children: ReactNode }) {
   const estilos = {
     erro: "border-erro/30 bg-red-50 text-erro",
     info: "border-verde/20 bg-cinza-claro text-tinta",
     sucesso: "border-verde/30 bg-green-50 text-verde",
+    aviso: "border-aviso/40 bg-amber-50 text-aviso",
   }[tipo];
   return (
     <p role={tipo === "erro" ? "alert" : "status"} className={`rounded-xl border-2 px-4 py-3 ${estilos}`}>

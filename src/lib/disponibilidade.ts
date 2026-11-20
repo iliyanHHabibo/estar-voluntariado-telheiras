@@ -8,12 +8,21 @@ import { diaDaSemana, diasDoMes, minutos } from "./tempo.ts";
 
 export type AtividadeBase = { id: string; nome: string };
 export type HorarioBase = { atividade_id: string; dia_semana: number; abre: string; fecha: string };
-export type FechoBase = { atividade_id: string | null; data: string };
+export type FechoBase = { atividade_id: string | null; data: string; motivo?: string | null };
+
+/** Um fecho que tira mesmo uma atividade do dia (p.ex. "Natal — Centro de Dia fechado"). */
+export type FechoDoDia = {
+  /** null = fecha tudo */
+  atividade_id: string | null;
+  /** nome da atividade, ou null se fecha tudo */
+  nome: string | null;
+  motivo: string | null;
+};
 
 /** Uma atividade que está aberta num dado dia, com o horário (em minutos). */
 export type Janela = { atividade_id: string; nome: string; abre: number; fecha: number };
 
-export type Dia = { data: string; diaSemana: number; janelas: Janela[] };
+export type Dia = { data: string; diaSemana: number; janelas: Janela[]; fechos: FechoDoDia[] };
 
 export type Intervalo = { data: string; inicio: number; fim: number; atividade_id: string | null };
 
@@ -38,7 +47,32 @@ export function janelasDoDia(
   return janelas;
 }
 
-/** Todos os dias do mês, cada um com as atividades que estão abertas. */
+/**
+ * Fechos que tiram de facto uma atividade deste dia. Um feriado que cai num dia em que a atividade
+ * já estava fechada de qualquer forma (p.ex. o Centro de Dia ao sábado) não interessa mostrar.
+ */
+export function fechosDoDia(
+  data: string,
+  atividades: AtividadeBase[],
+  horarios: HorarioBase[],
+  fechos: FechoBase[],
+): FechoDoDia[] {
+  const dow = diaDaSemana(data);
+  const abertasNormalmente = atividades.filter((a) => horarios.some((h) => h.atividade_id === a.id && h.dia_semana === dow));
+  const r: FechoDoDia[] = [];
+  for (const f of fechos) {
+    if (f.data !== data) continue;
+    if (f.atividade_id === null) {
+      if (abertasNormalmente.length > 0) r.push({ atividade_id: null, nome: null, motivo: f.motivo ?? null });
+      continue;
+    }
+    const a = abertasNormalmente.find((x) => x.id === f.atividade_id);
+    if (a) r.push({ atividade_id: a.id, nome: a.nome, motivo: f.motivo ?? null });
+  }
+  return r;
+}
+
+/** Todos os dias do mês, cada um com as atividades abertas e os fechos (feriados, férias…). */
 export function diasComJanelas(
   mes: string,
   atividades: AtividadeBase[],
@@ -49,6 +83,7 @@ export function diasComJanelas(
     data,
     diaSemana: diaDaSemana(data),
     janelas: janelasDoDia(data, atividades, horarios, fechos),
+    fechos: fechosDoDia(data, atividades, horarios, fechos),
   }));
 }
 
@@ -86,13 +121,20 @@ export function sobrepoe(existentes: { inicio: number; fim: number }[], inicio: 
 
 export type ResultadoRepeticao = {
   adicionar: Intervalo[];
-  /** Quantas datas foram ignoradas e porquê */
-  ignoradas: { fechado: number; foraDoHorario: number; jaTinha: number; passado: number };
+  /** O que ficou de fora, e porquê (para o explicarmos à pessoa) */
+  ignoradas: {
+    /** datas em que a atividade estava fechada (feriado, férias…) */
+    fechado: { data: string; motivo: string | null }[];
+    /** datas em que a atividade não funciona a essas horas */
+    foraDoHorario: number;
+    jaTinha: number;
+    passado: number;
+  };
 };
 
 /**
  * "Repetir todas as semanas": todos os `diaSemana` do mês, com o mesmo horário.
- * Só adiciona onde é válido; conta o que ignorou para o explicarmos à pessoa.
+ * Só adiciona onde é válido; regista o que ignorou para o explicarmos à pessoa.
  */
 export function repetirSemanalmente(opts: {
   dias: Dia[];
@@ -103,14 +145,21 @@ export function repetirSemanalmente(opts: {
   existentes: Intervalo[];
   hoje: string;
 }): ResultadoRepeticao {
-  const r: ResultadoRepeticao = { adicionar: [], ignoradas: { fechado: 0, foraDoHorario: 0, jaTinha: 0, passado: 0 } };
+  const r: ResultadoRepeticao = { adicionar: [], ignoradas: { fechado: [], foraDoHorario: 0, jaTinha: 0, passado: 0 } };
   for (const dia of opcoesDoDia(opts.dias, opts.diaSemana)) {
     if (dia.data < opts.hoje) {
       r.ignoradas.passado++;
       continue;
     }
-    if (dia.janelas.length === 0) {
-      r.ignoradas.fechado++;
+    // Fechada por feriado/férias? (com "qualquer atividade", só conta se não sobrar nenhuma aberta)
+    const fecho =
+      opts.atividadeId === null
+        ? dia.janelas.length === 0
+          ? dia.fechos[0]
+          : undefined
+        : dia.fechos.find((f) => f.atividade_id === null || f.atividade_id === opts.atividadeId);
+    if (fecho) {
+      r.ignoradas.fechado.push({ data: dia.data, motivo: fecho.motivo });
       continue;
     }
     if (!intervaloValido(dia.janelas, opts.atividadeId, opts.inicio, opts.fim)) {
@@ -125,6 +174,25 @@ export function repetirSemanalmente(opts: {
     r.adicionar.push({ data: dia.data, inicio: opts.inicio, fim: opts.fim, atividade_id: opts.atividadeId });
   }
   return r;
+}
+
+/** "2026-12-08" → "8/12" */
+function diaMes(data: string): string {
+  return `${Number(data.slice(8))}/${Number(data.slice(5, 7))}`;
+}
+
+/** Frase para a pessoa: o que o atalho deixou de fora e porquê (nomeia os feriados). */
+export function explicarIgnoradas(i: ResultadoRepeticao["ignoradas"], atividade: string | null): string {
+  const partes: string[] = [];
+  const dias = (n: number) => `${n} ${n === 1 ? "dia" : "dias"}`;
+  if (i.fechado.length) {
+    const lista = i.fechado.map((f) => (f.motivo ? `${diaMes(f.data)} (${f.motivo})` : diaMes(f.data))).join(", ");
+    partes.push(`${lista} — ${atividade ? `${atividade} está fechado` : "fechado"}`);
+  }
+  if (i.foraDoHorario) partes.push(`${dias(i.foraDoHorario)} em que a atividade não funciona a essas horas`);
+  if (i.jaTinha) partes.push(`${dias(i.jaTinha)} em que já tinhas disponibilidade`);
+  if (i.passado) partes.push(`${dias(i.passado)} que já ${i.passado === 1 ? "passou" : "passaram"}`);
+  return partes.join("; ");
 }
 
 function opcoesDoDia(dias: Dia[], diaSemana: number): Dia[] {

@@ -15,7 +15,9 @@ import {
 } from "./tempo.ts";
 import {
   diasComJanelas,
+  explicarIgnoradas,
   intervaloValido,
+  fechosDoDia,
   janelasDoDia,
   janelasDoDiaDaSemana,
   repetirSemanalmente,
@@ -38,8 +40,10 @@ const horarios: HorarioBase[] = [
   ...[1, 2, 3, 4, 5].map((d) => ({ atividade_id: CENTRO, dia_semana: d, abre: "10:00:00", fecha: "17:00:00" })),
 ];
 const fechos: FechoBase[] = [
-  { atividade_id: CENTRO, data: "2026-12-08" }, // terça, feriado: fecha o Centro de Dia
-  { atividade_id: CENTRO, data: "2026-12-25" }, // sexta, Natal
+  { atividade_id: CENTRO, data: "2026-12-01", motivo: "Restauração da Independência" }, // terça
+  { atividade_id: CENTRO, data: "2026-12-08", motivo: "Imaculada Conceição" }, // terça
+  { atividade_id: CENTRO, data: "2026-12-25", motivo: "Natal" }, // sexta
+  { atividade_id: CENTRO, data: "2026-12-05", motivo: "Dia sem efeito" }, // sábado: o Centro já fechava
 ];
 
 test("dia da semana (1 = segunda … 7 = domingo)", () => {
@@ -120,28 +124,54 @@ test("sobreposição: encostar não conta", () => {
   assert.equal(sobrepoe([], 840, 900), false);
 });
 
-test("repetir todas as terças de dezembro de 2026 (Centro de Dia, 14h–16h)", () => {
+test("repetir todas as terças de dezembro de 2026 (Centro de Dia, 14h–16h): feriados ficam de fora e são nomeados", () => {
   const dias = diasComJanelas("2026-12-01", atividades, horarios, fechos);
-  const r = repetirSemanalmente({
-    dias,
-    diaSemana: 2,
-    atividadeId: CENTRO,
-    inicio: 840,
-    fim: 960,
-    existentes: [],
-    hoje: "2026-11-20",
-  });
-  // terças: 1, 8, 15, 22, 29 → dia 8 é feriado
-  assert.deepEqual(r.adicionar.map((x) => x.data), ["2026-12-01", "2026-12-15", "2026-12-22", "2026-12-29"]);
-  assert.equal(r.ignoradas.fechado, 0); // a Clínica está aberta, por isso o dia não está "fechado"
-  assert.equal(r.ignoradas.foraDoHorario, 1); // mas o Centro de Dia não: 8 de dezembro
+  const r = repetirSemanalmente({ dias, diaSemana: 2, atividadeId: CENTRO, inicio: 840, fim: 960, existentes: [], hoje: "2026-11-20" });
+  // terças: 1, 8, 15, 22, 29 → dias 1 e 8 são feriados
+  assert.deepEqual(r.adicionar.map((x) => x.data), ["2026-12-15", "2026-12-22", "2026-12-29"]);
+  assert.deepEqual(r.ignoradas.fechado, [
+    { data: "2026-12-01", motivo: "Restauração da Independência" },
+    { data: "2026-12-08", motivo: "Imaculada Conceição" },
+  ]);
+  assert.equal(r.ignoradas.foraDoHorario, 0);
 });
 
-test("repetir ao sábado no Centro de Dia: nada se adiciona", () => {
+test("repetir 'qualquer atividade' numa terça de feriado: a Clínica está aberta, por isso adiciona", () => {
+  const dias = diasComJanelas("2026-12-01", atividades, horarios, fechos);
+  const r = repetirSemanalmente({ dias, diaSemana: 2, atividadeId: null, inicio: 840, fim: 960, existentes: [], hoje: "2026-11-20" });
+  assert.equal(r.adicionar.length, 5);
+  assert.equal(r.ignoradas.fechado.length, 0);
+});
+
+test("repetir quando tudo fecha num dia: conta como fechado, com o motivo", () => {
+  const dias = diasComJanelas("2026-12-01", atividades, horarios, [{ atividade_id: null, data: "2026-12-24", motivo: "Véspera de Natal" }]);
+  const r = repetirSemanalmente({ dias, diaSemana: 4, atividadeId: null, inicio: 840, fim: 960, existentes: [], hoje: "2026-11-20" });
+  assert.deepEqual(r.ignoradas.fechado, [{ data: "2026-12-24", motivo: "Véspera de Natal" }]);
+  assert.deepEqual(r.adicionar.map((x) => x.data), ["2026-12-03", "2026-12-10", "2026-12-17", "2026-12-31"]); // o dia 24 está fechado
+});
+
+test("repetir ao sábado no Centro de Dia: nada se adiciona (não funciona ao fim de semana)", () => {
   const dias = diasComJanelas("2026-12-01", atividades, horarios, fechos);
   const r = repetirSemanalmente({ dias, diaSemana: 6, atividadeId: CENTRO, inicio: 840, fim: 960, existentes: [], hoje: "2026-11-20" });
   assert.equal(r.adicionar.length, 0);
   assert.equal(r.ignoradas.foraDoHorario, 4);
+  assert.equal(r.ignoradas.fechado.length, 0);
+});
+
+test("fechos do dia: só mostra o que tira mesmo uma atividade desse dia", () => {
+  const f = (data: string) => fechosDoDia(data, atividades, horarios, fechos);
+  assert.deepEqual(f("2026-12-08"), [{ atividade_id: CENTRO, nome: "Centro de Dia", motivo: "Imaculada Conceição" }]);
+  assert.deepEqual(f("2026-12-05"), []); // sábado: o Centro já estava fechado
+  assert.deepEqual(f("2026-12-07"), []); // dia normal
+  assert.deepEqual(fechosDoDia("2026-12-24", atividades, horarios, [{ atividade_id: null, data: "2026-12-24", motivo: "Véspera" }]), [
+    { atividade_id: null, nome: null, motivo: "Véspera" },
+  ]);
+});
+
+test("cada dia do mês traz os seus fechos", () => {
+  const dias = diasComJanelas("2026-12-01", atividades, horarios, fechos);
+  assert.equal(dias[7].fechos[0].motivo, "Imaculada Conceição"); // dia 8
+  assert.equal(dias[4].fechos.length, 0); // dia 5 (sábado)
 });
 
 test("repetir não duplica o que já existe nem inclui dias passados", () => {
@@ -221,4 +251,22 @@ test("atalho: se a atividade estiver fechada em todas as datas desse dia da sema
   const todosOsSabados = ["2026-12-05", "2026-12-12", "2026-12-19", "2026-12-26"].map((data) => ({ atividade_id: CLINICA, data }));
   const dias = diasComJanelas("2026-12-01", atividades, horarios, todosOsSabados);
   assert.deepEqual(janelasDoDiaDaSemana(dias, 6), []);
+});
+
+test("aviso do atalho: nomeia os feriados e a atividade fechada", () => {
+  const dias = diasComJanelas("2026-12-01", atividades, horarios, fechos);
+  const r = repetirSemanalmente({ dias, diaSemana: 2, atividadeId: CENTRO, inicio: 840, fim: 960, existentes: [], hoje: "2026-11-20" });
+  assert.equal(
+    explicarIgnoradas(r.ignoradas, "Centro de Dia"),
+    "1/12 (Restauração da Independência), 8/12 (Imaculada Conceição) — Centro de Dia está fechado",
+  );
+});
+
+test("aviso do atalho: junta os vários motivos e fica vazio quando não há nada a avisar", () => {
+  assert.equal(explicarIgnoradas({ fechado: [], foraDoHorario: 0, jaTinha: 0, passado: 0 }, null), "");
+  assert.equal(
+    explicarIgnoradas({ fechado: [{ data: "2026-12-25", motivo: null }], foraDoHorario: 1, jaTinha: 2, passado: 1 }, null),
+    "25/12 — fechado; 1 dia em que a atividade não funciona a essas horas; 2 dias em que já tinhas disponibilidade; 1 dia que já passou",
+  );
+  assert.ok(explicarIgnoradas({ fechado: [], foraDoHorario: 0, jaTinha: 0, passado: 3 }, null).endsWith("3 dias que já passaram"));
 });

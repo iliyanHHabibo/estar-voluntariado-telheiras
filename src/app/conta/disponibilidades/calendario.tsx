@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useRef, useState } from "react";
-import { CalendarPlus, Repeat, Trash2 } from "lucide-react";
+import { CalendarOff, CalendarPlus, Repeat, Trash2 } from "lucide-react";
 import {
   adicionarDisponibilidade,
   guardarObservacao,
@@ -153,6 +153,9 @@ function Repetir({ mes, dias, abertoPorOmissao }: { mes: string; dias: Dia[]; ab
   const [estado, acao] = useActionState<EstadoDisp, FormData>(repetirTodasAsSemanas, {});
   const [diaSemana, setDiaSemana] = useState(2);
   const [atividade, setAtividade] = useState("");
+  // Aberto à partida se ainda não há disponibilidades; depois, só se fecha se a pessoa o fechar
+  // (antes fechava-se sozinho ao adicionar a primeira, e escondia a mensagem do resultado)
+  const [aberto, setAberto] = useState(abertoPorOmissao);
 
   // Só oferecemos o que existe nesse dia da semana (ao domingo, p.ex., não há Centro de Dia)
   const doDia = janelasDoDiaDaSemana(dias, diaSemana);
@@ -161,7 +164,7 @@ function Repetir({ mes, dias, abertoPorOmissao }: { mes: string; dias: Dia[]; ab
   const { lo, hi } = escolhidas.length ? intervaloDe(escolhidas) : { lo: 600, hi: 1080 };
 
   return (
-    <details open={abertoPorOmissao} className="rounded-3xl border-2 border-verde/30 bg-white p-5 sm:p-6">
+    <details open={aberto} onToggle={(e) => setAberto(e.currentTarget.open)} className="rounded-3xl border-2 border-verde/30 bg-white p-5 sm:p-6">
       <summary className="flex cursor-pointer list-none items-center gap-3 font-semibold [&::-webkit-details-marker]:hidden">
         <Repeat aria-hidden className="size-5 text-verde" />
         <span>
@@ -220,8 +223,9 @@ function Repetir({ mes, dias, abertoPorOmissao }: { mes: string; dias: Dia[]; ab
           </div>
         )}
         {estado.ok && (
-          <div className="w-full">
+          <div className="w-full space-y-2">
             <Alerta tipo="sucesso">{estado.ok}</Alerta>
+            {estado.aviso && <Alerta tipo="aviso">{estado.aviso}</Alerta>}
           </div>
         )}
       </form>
@@ -298,6 +302,21 @@ export function Calendario({
                 <span className="text-tinta-suave"> {DIAS_SEMANA_CURTO[dia.diaSemana - 1]}</span>
               </div>
               <div className="space-y-3">
+                {dia.fechos.length > 0 && (
+                  <ul className="flex flex-wrap gap-2">
+                    {dia.fechos.map((f, i) => (
+                      <li
+                        key={i}
+                        className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1 text-sm font-medium text-aviso"
+                      >
+                        <CalendarOff aria-hidden className="size-4 shrink-0" />
+                        <span>
+                          {f.motivo ?? "Fechado"} · {f.nome ? `${f.nome} fechado` : "tudo fechado"}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
                 {dasMinhas.length > 0 && (
                   <ul className="flex flex-wrap gap-2">
                     {dasMinhas.map((m) => (
@@ -305,7 +324,7 @@ export function Calendario({
                     ))}
                   </ul>
                 )}
-                {dia.janelas.length === 0 && !dasMinhas.length && (
+                {dia.janelas.length === 0 && !dasMinhas.length && dia.fechos.length === 0 && (
                   <p className="text-sm text-tinta-suave">Sem atividades neste dia.</p>
                 )}
                 {podeAdicionar && <AdicionarNoDia dia={dia} />}
