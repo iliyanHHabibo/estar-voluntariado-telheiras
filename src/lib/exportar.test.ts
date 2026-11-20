@@ -1,7 +1,7 @@
 // Testes das linhas de exportação. Correr com: npm test
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { CABECALHO_VISITAS, CABECALHO_VOLUNTARIOS, linhasVisitas, linhasVoluntarios, type VisitaParaExportar } from "./exportar.ts";
+import { CABECALHO_VISITAS, CABECALHO_VOLUNTARIOS, linhasVisitas, linhasVoluntarios, prepararVisitas, prepararVoluntarios, type VisitaParaExportar } from "./exportar.ts";
 import { gerarCsv } from "./csv.ts";
 
 test("voluntários: uma linha por pessoa, com o mesmo número de colunas que o cabeçalho", () => {
@@ -79,4 +79,63 @@ test("exportação completa: nomes maliciosos não viram fórmulas no Excel", ()
   const csv = gerarCsv(CABECALHO_VISITAS, linhasVisitas([{ ...visitas[0], alocacoes: [{ ...visitas[0].alocacoes[0], nome: '=HYPERLINK("http://mau.pt","clica")' }] }]));
   assert.ok(csv.includes(`"'=HYPERLINK(""http://mau.pt"",""clica"")"`));
   assert.ok(!/;=HYPERLINK/.test(csv));
+});
+
+// ---- os dados tal como a base de dados os devolve (relações como objeto, lista ou null) ----
+const vol = (id: string, nome: string, nasc = "1995-03-04") => ({
+  id, nome, email: `${id}@exemplo.pt`, telefone: "912345678", data_nascimento: nasc, estado: "ativo",
+  encarregado_nome: null, encarregado_telefone: null, encarregado_email: null, criado_em: "2026-11-20T10:00:00+00:00",
+});
+
+test("preparar voluntários: relações como objeto, lista de 1 e null; sem alocações nem interesses", () => {
+  const r = prepararVoluntarios(
+    [vol("ana", "Ana"), vol("bia", "Bia"), vol("cris", "Cris", "2010-06-01")],
+    [
+      { voluntario_id: "ana", atividades: { nome: "Clínica" } },
+      { voluntario_id: "ana", atividades: [{ nome: "Centro de Dia" }] },
+      { voluntario_id: "bia", atividades: null },
+    ],
+    [
+      { voluntario_id: "ana", estado: "confirmada", presenca: "presente", visitas: { data: "2026-12-01", inicio: "10:00:00", fim: "11:30:00", estado: "realizada" } },
+      { voluntario_id: "ana", estado: "confirmada", presenca: null, visitas: [{ data: "2026-12-20", inicio: "10:00:00", fim: "11:00:00", estado: "comunicada" }] },
+      { voluntario_id: "bia", estado: "confirmada", presenca: null, visitas: null },
+    ],
+    "2026-12-10",
+  );
+  assert.equal(r.length, 3);
+  assert.deepEqual(r[0].interesses, ["Clínica", "Centro de Dia"]);
+  assert.equal(r[0].stats.feitas, 1);
+  assert.equal(r[0].stats.horas, 1.5);
+  assert.equal(r[0].stats.proximas, 1);
+  assert.deepEqual(r[1].interesses, []);
+  assert.equal(r[1].stats.feitas, 0);
+  assert.equal(r[2].idade, 16);
+  // e o ficheiro final gera-se sem erros
+  assert.ok(gerarCsv(CABECALHO_VOLUNTARIOS, linhasVoluntarios(r)).includes("Ana;ana@exemplo.pt"));
+});
+
+test("preparar voluntários: listas vazias (projeto novo)", () => {
+  assert.deepEqual(prepararVoluntarios([], [], [], "2026-12-10"), []);
+  const csv = gerarCsv(CABECALHO_VOLUNTARIOS, linhasVoluntarios([]));
+  assert.equal(csv.split("\r\n").length, 2); // cabeçalho + linha final vazia
+});
+
+test("preparar visitas: alocações como lista, objeto, vazias ou null; pessoa apagada", () => {
+  const r = prepararVisitas([
+    { data: "2026-12-12", inicio: "14:00:00", fim: "15:00:00", estado: "comunicada", atividades: { nome: "Clínica" },
+      alocacoes: [
+        { estado: "confirmada", presenca: null, motivo: null, voluntarios: { nome: "Ana", telefone: "912", email: "a@x.pt" } },
+        { estado: "proposta", presenca: null, motivo: null, voluntarios: [{ nome: "Bia", telefone: "913", email: "b@x.pt" }] },
+        { estado: "proposta", presenca: null, motivo: null, voluntarios: null },
+      ] },
+    { data: "2026-12-13", inicio: "14:00:00", fim: "15:00:00", estado: "rascunho", atividades: null, alocacoes: [] },
+    { data: "2026-12-14", inicio: "14:00:00", fim: "15:00:00", estado: "rascunho", atividades: [{ nome: "Centro" }], alocacoes: null },
+  ]);
+  assert.equal(r[0].alocacoes.length, 3);
+  assert.equal(r[0].alocacoes[1].nome, "Bia");
+  assert.equal(r[0].alocacoes[2].nome, "(conta apagada)");
+  assert.equal(r[1].atividade, "Visita");
+  assert.equal(r[2].atividade, "Centro");
+  assert.deepEqual(r[2].alocacoes, []);
+  assert.equal(linhasVisitas(r).length, 5);
 });

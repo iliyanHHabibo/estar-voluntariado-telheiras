@@ -7,6 +7,7 @@ import { diasComJanelas } from "@/lib/disponibilidade";
 import { hojeLisboa, mesSeguinte, primeiroDiaDoMes } from "@/lib/tempo";
 import type { EstadoVisita } from "@/lib/visitas";
 import { contarAlocacoes } from "@/lib/visitas";
+import { Alerta } from "@/components/forms";
 import { PlaneamentoMes, type VisitaPlan } from "./vista";
 
 export const metadata: Metadata = { title: "Planeamento" };
@@ -28,7 +29,7 @@ async function Conteudo({ searchParams }: { searchParams: PageProps<"/admin/plan
   const hoje = hojeLisboa();
 
   // Que mês mostrar? O pedido; senão, o primeiro período aberto ou a abrir; senão, o mês seguinte
-  const { mes: mesPedido } = await searchParams;
+  const { mes: mesPedido, erro } = await searchParams;
   let mes = z.iso.date().safeParse(mesPedido).success ? primeiroDiaDoMes(mesPedido as string) : null;
   if (!mes) {
     const { data: p } = await supabase
@@ -107,7 +108,13 @@ async function Conteudo({ searchParams }: { searchParams: PageProps<"/admin/plan
 
 
   return (
-    <PlaneamentoMes
+    <>
+      {erro === "exportar" && (
+        <div className="mb-6">
+          <Alerta tipo="erro">Não foi possível gerar o ficheiro. Tenta outra vez; se continuar, o motivo fica registado nos registos do servidor.</Alerta>
+        </div>
+      )}
+      <PlaneamentoMes
       mes={mes}
       hoje={hoje}
       dias={dias}
@@ -116,5 +123,6 @@ async function Conteudo({ searchParams }: { searchParams: PageProps<"/admin/plan
       periodo={(periodo as { abre_em: string; fecha_em: string } | null) ?? null}
       voluntarios={{ ativos: ativos ?? 0, responderam: responderam.size }}
     />
+    </>
   );
 }

@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { dataCurta, hojeLisboa, idadeEm } from "@/lib/tempo";
 import { estatisticaVazia, estatisticasPorVoluntario, filtrarVoluntarios, formatarHoras, type AlocacaoParaEstatistica } from "@/lib/voluntarios";
 import { nomeCurto } from "../planeamento/vista";
-import { CAMPO } from "@/components/forms";
+import { Alerta, CAMPO } from "@/components/forms";
 
 export const metadata: Metadata = { title: "Voluntários" };
 
@@ -70,6 +70,10 @@ export default async function Voluntarios({ searchParams }: PageProps<"/admin/vo
           <Download aria-hidden className="size-5" /> Exportar para Excel
         </a>
       </div>
+
+      {sp.erro === "exportar" && (
+        <Alerta tipo="erro">Não foi possível gerar o ficheiro. Tenta outra vez; se continuar, o motivo fica registado nos registos do servidor.</Alerta>
+      )}
 
       <form method="get" className="flex flex-wrap items-end gap-4 rounded-3xl bg-white p-5">
         <div className="min-w-60 flex-1">

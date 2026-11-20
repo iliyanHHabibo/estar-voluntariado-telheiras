@@ -1,7 +1,7 @@
 /** Linhas dos ficheiros de exportação (Excel). Lógica pura, testada em exportar.test.ts. */
-import { dataCurta, horaTexto } from "./tempo.ts";
+import { dataCurta, horaTexto, idadeEm } from "./tempo.ts";
 import { ESTADOS_ALOCACAO, ESTADOS_VISITA, type EstadoAlocacao, type EstadoVisita } from "./visitas.ts";
-import { formatarHoras, type Estatistica } from "./voluntarios.ts";
+import { estatisticaVazia, estatisticasPorVoluntario, formatarHoras, type AlocacaoParaEstatistica, type Estatistica } from "./voluntarios.ts";
 
 export const CABECALHO_VOLUNTARIOS = [
   "Nome",
@@ -104,4 +104,95 @@ export function linhasVisitas(visitas: VisitaParaExportar[]): unknown[][] {
     }
   }
   return linhas;
+}
+
+// ---------------------------------------------------------------------------------------------
+// Dados tal como chegam da base de dados → o que se exporta. (Funções puras, para se poderem testar.)
+// Uma relação embutida pode vir como objeto, como lista de 1 elemento ou como null.
+// ---------------------------------------------------------------------------------------------
+type Rel<T> = T | T[] | null | undefined;
+const um = <T,>(r: Rel<T>): T | null => (Array.isArray(r) ? (r[0] ?? null) : (r ?? null));
+
+export type VoluntarioBruto = {
+  id: string;
+  nome: string;
+  email: string;
+  telefone: string;
+  data_nascimento: string;
+  estado: string;
+  encarregado_nome: string | null;
+  encarregado_telefone: string | null;
+  encarregado_email: string | null;
+  criado_em: string;
+};
+export type InteresseBruto = { voluntario_id: string; atividades: Rel<{ nome: string }> };
+export type AlocacaoBruta = {
+  voluntario_id: string;
+  estado: string;
+  presenca: string | null;
+  visitas: Rel<AlocacaoParaEstatistica["visita"]>;
+};
+
+export function prepararVoluntarios(vols: VoluntarioBruto[], interesses: InteresseBruto[], aloc: AlocacaoBruta[], hoje: string): VoluntarioParaExportar[] {
+  const stats = estatisticasPorVoluntario(
+    aloc
+      .map((a) => ({ voluntario_id: a.voluntario_id, estado: a.estado, presenca: a.presenca, visita: um(a.visitas) }))
+      .filter((a): a is AlocacaoParaEstatistica => a.visita !== null),
+    hoje,
+  );
+  const interessesDe = new Map<string, string[]>();
+  for (const i of interesses) {
+    const nome = um(i.atividades)?.nome;
+    if (nome) interessesDe.set(i.voluntario_id, [...(interessesDe.get(i.voluntario_id) ?? []), nome]);
+  }
+  return vols.map((v) => ({
+    nome: v.nome,
+    email: v.email,
+    telefone: v.telefone,
+    data_nascimento: v.data_nascimento,
+    idade: idadeEm(v.data_nascimento, hoje),
+    estado: v.estado,
+    encarregado_nome: v.encarregado_nome,
+    encarregado_telefone: v.encarregado_telefone,
+    encarregado_email: v.encarregado_email,
+    criado_em: v.criado_em,
+    interesses: interessesDe.get(v.id) ?? [],
+    stats: stats.get(v.id) ?? estatisticaVazia(),
+  }));
+}
+
+export type VisitaBruta = {
+  data: string;
+  inicio: string;
+  fim: string;
+  estado: EstadoVisita;
+  atividades: Rel<{ nome: string }>;
+  /** uma visita tem várias alocações: a base de dados devolve sempre uma lista (ou null) */
+  alocacoes:
+    | {
+        estado: EstadoAlocacao;
+        presenca: string | null;
+        motivo: string | null;
+        voluntarios: Rel<{ nome: string; telefone: string; email: string }>;
+      }[]
+    | null
+    | undefined;
+};
+
+export function prepararVisitas(visitas: VisitaBruta[]): VisitaParaExportar[] {
+  return visitas.map((v) => ({
+    data: v.data,
+    inicio: v.inicio,
+    fim: v.fim,
+    estado: v.estado,
+    atividade: um(v.atividades)?.nome ?? "Visita",
+    alocacoes: (v.alocacoes ?? []).map((a) => ({
+      nome: um(a.voluntarios)?.nome ?? "(conta apagada)",
+      telefone: um(a.voluntarios)?.telefone ?? "",
+      email: um(a.voluntarios)?.email ?? "",
+      estado: a.estado,
+      presenca: a.presenca,
+      motivo: a.motivo,
+    })),
+  }));
 }
