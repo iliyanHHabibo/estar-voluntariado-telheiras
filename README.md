@@ -23,7 +23,7 @@ Abre http://localhost:3000 no browser.
 | `npm run build` | Compila a versão de produção (e deteta erros) |
 | `npm start` | Corre a versão compilada |
 | `npm run lint` | Verifica o código |
-| `npm test` | Testes da lógica de datas, disponibilidades e ficheiros de calendário |
+| `npm test` | Testes da lógica de datas, disponibilidades, visitas e ficheiros de calendário |
 
 ## Estado atual
 
@@ -32,8 +32,9 @@ Abre http://localhost:3000 no browser.
       2FA obrigatório para admins; gestão de admins; descarregar/apagar dados (RGPD); CSP e cookies httpOnly
 - [x] Fase 1C-1 (área do voluntário): calendário de disponibilidades (com "repetir todas as semanas"),
       as minhas visitas (confirmar / não posso / ficheiro de calendário), enviar testemunhos, resumo da conta
-- [ ] Fase 1C-2 (área de admin): abrir períodos, planeamento do mês, visitas e alocações, voluntários,
-      atividades, moderação de testemunhos
+- [x] Fase 1C-2 (área de admin): períodos de disponibilidades, planeamento do mês, criar visitas, alocar
+      (com avisos de conflitos), estados da visita, mensagem para o responsável, presenças
+- [ ] Fase 1C-3: voluntários (lista e fichas), atividades (editar horários e fechos), moderação de testemunhos
 - [ ] Emails ("estás alocado", cancelamentos) e publicação online
 
 ## Onde mexer
@@ -53,7 +54,7 @@ Abre http://localhost:3000 no browser.
 ## Testes das permissões da base de dados
 
 `supabase/tests/correr.sh` cria uma base de dados Postgres temporária, aplica a migração e verifica
-~100 regras (ex.: "voluntário NÃO vê dados de outro", "admin sem 2FA NÃO vê perfis").
+~135 regras (incl. o fluxo completo do admin: criar → alocar → comunicar → responder) (ex.: "voluntário NÃO vê dados de outro", "admin sem 2FA NÃO vê perfis").
 Precisa de PostgreSQL instalado localmente. Corre-o sempre que mudares a base de dados.
 
 ## Notas

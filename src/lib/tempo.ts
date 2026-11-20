@@ -108,3 +108,30 @@ export function mesSeguinte(data: string): string {
   const [a, m] = data.split("-").map(Number);
   return m === 12 ? `${a + 1}-01-01` : `${a}-${String(m + 1).padStart(2, "0")}-01`;
 }
+
+/** Soma (ou subtrai) dias a uma data "AAAA-MM-DD". */
+export function somarDias(data: string, dias: number): string {
+  const [a, m, d] = data.split("-").map(Number);
+  return new Date(Date.UTC(a, m - 1, d + dias)).toISOString().slice(0, 10);
+}
+
+/** O mês anterior: "2026-12-01" → "2026-11-01" */
+export function mesAnterior(data: string): string {
+  const [a, m] = data.split("-").map(Number);
+  return m === 1 ? `${a - 1}-12-01` : `${a}-${String(m - 1).padStart(2, "0")}-01`;
+}
+
+/** "Sábado, 12 de dezembro" (primeira letra maiúscula, para começar frases) */
+export function dataPorExtensoMaiuscula(data: string): string {
+  const t = dataPorExtenso(data);
+  return t.charAt(0).toUpperCase() + t.slice(1);
+}
+
+/** Idade em anos completos numa data (por omissão, hoje em Lisboa). */
+export function idadeEm(nascimento: string, em: string = hojeLisboa()): number {
+  const [na, nm, nd] = nascimento.slice(0, 10).split("-").map(Number);
+  const [ea, em_, ed] = em.split("-").map(Number);
+  let idade = ea - na;
+  if (em_ < nm || (em_ === nm && ed < nd)) idade--;
+  return idade;
+}

@@ -19,6 +19,8 @@ export const instant = false;
 
 const NAV_ADMIN = [
   { href: "/admin", label: "Painel" },
+  { href: "/admin/planeamento", label: "Planeamento" },
+  { href: "/admin/periodos", label: "Períodos" },
   { href: "/admin/admins", label: "Admins" },
 ];
 
