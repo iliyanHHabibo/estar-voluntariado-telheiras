@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense, type ReactNode } from "react";
 import { Container } from "@/components/ui";
-import { adminExige2fa, exigirAdmin } from "@/lib/auth";
+import { UserRound } from "lucide-react";
+import { adminExige2fa, exigirAdmin, obterUtilizador } from "@/lib/auth";
+import { createClient } from "@/lib/supabase/server";
 import { sair } from "../entrar/actions";
 
 export const metadata: Metadata = {
@@ -40,11 +42,16 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
               </Link>
             ))}
           </nav>
-          <form action={sair}>
-            <button type="submit" className="rounded-full px-4 py-2 text-sm font-medium hover:bg-white/10">
-              Sair
-            </button>
-          </form>
+          <div className="flex items-center gap-1">
+            <Suspense fallback={null}>
+              <AtalhoVoluntario />
+            </Suspense>
+            <form action={sair}>
+              <button type="submit" className="rounded-full px-4 py-2 text-sm font-medium hover:bg-white/10">
+                Sair
+              </button>
+            </form>
+          </div>
         </Container>
       </div>
       <Container className="min-h-[60vh] py-10">
@@ -70,5 +77,22 @@ async function Porta({ children }: { children: ReactNode }) {
       )}
       {children}
     </>
+  );
+}
+
+/** Atalho para a conta de voluntário de quem é admin (ou para se inscrever, se ainda não o fez). */
+async function AtalhoVoluntario() {
+  const u = await obterUtilizador();
+  if (!u) return null;
+  const supabase = await createClient();
+  const { data } = await supabase.from("voluntarios").select("id").eq("id", u.id).maybeSingle();
+  return (
+    <Link
+      href={data ? "/conta" : "/conta/inscricao"}
+      className="inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-2 text-sm font-semibold hover:bg-white/25"
+    >
+      <UserRound aria-hidden className="size-4" />
+      {data ? "A minha conta de voluntário" : "Inscrever-me como voluntário"}
+    </Link>
   );
 }
