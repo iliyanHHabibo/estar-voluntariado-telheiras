@@ -24,8 +24,9 @@ SQL
 
 sed '/^create role/d' tests/00_shim_supabase.sql > "/tmp/estar_shim_$$.sql"
 run "/tmp/estar_shim_$$.sql"; rm -f "/tmp/estar_shim_$$.sql"
-run migrations/20261114120000_esquema_inicial.sql
+for m in migrations/*.sql; do run "$m"; done
 run seed.sql
 run tests/10_helpers.sql
 $PSQL -v ON_ERROR_STOP=1 -d "$DB" -f tests/20_rls.sql
 $PSQL -v ON_ERROR_STOP=1 -d "$DB" -f tests/30_fluxo_admin.sql
+$PSQL -v ON_ERROR_STOP=1 -d "$DB" -f tests/40_conteudo_admin.sql

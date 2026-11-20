@@ -21,6 +21,9 @@ const NAV_ADMIN = [
   { href: "/admin", label: "Painel" },
   { href: "/admin/planeamento", label: "Planeamento" },
   { href: "/admin/periodos", label: "Períodos" },
+  { href: "/admin/voluntarios", label: "Voluntários" },
+  { href: "/admin/atividades", label: "Atividades" },
+  { href: "/admin/testemunhos", label: "Testemunhos" },
   { href: "/admin/admins", label: "Admins" },
 ];
 

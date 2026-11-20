@@ -1,9 +1,8 @@
 import Link from "next/link";
 import { ArrowRight, CalendarDays, Clock, HeartHandshake, Hourglass, MailCheck } from "lucide-react";
 import { ButtonLink, Container, Section } from "@/components/ui";
-import { ATIVIDADES } from "@/lib/atividades";
 import { ROTA_INSCRICAO, SITE } from "@/lib/site";
-import { TESTEMUNHOS } from "@/lib/testemunhos";
+import { getAtividades, getTestemunhos } from "@/lib/publico";
 
 const PASSOS = [
   { icon: HeartHandshake, titulo: "Inscreve-te", texto: "Preenches os teus dados uma única vez." },
@@ -12,7 +11,8 @@ const PASSOS = [
   { icon: Clock, titulo: "Vais ESTAR", texto: "Uma hora do teu tempo muda o dia de alguém — e o teu também." },
 ];
 
-export default function Inicio() {
+export default async function Inicio() {
+  const [atividades, testemunhos] = await Promise.all([getAtividades(), getTestemunhos()]);
   return (
     <>
       {/* Hero */}
@@ -87,7 +87,7 @@ export default function Inicio() {
         <Container>
           <h2 className="titulo text-3xl sm:text-4xl">Onde podes ESTAR</h2>
           <div className="mt-10 grid gap-6 md:grid-cols-2">
-            {ATIVIDADES.map((a) => (
+            {atividades.map((a) => (
               <article key={a.slug} className="flex flex-col rounded-3xl border border-black/10 bg-cinza-claro p-7 sm:p-9">
                 <h3 className="titulo text-xl leading-snug">{a.nome}</h3>
                 <p className="mt-4 text-tinta-suave">{a.resumo}</p>
@@ -138,16 +138,16 @@ export default function Inicio() {
       </Section>
 
       {/* Testemunhos (só aparece quando houver testemunhos publicados) */}
-      {TESTEMUNHOS.length > 0 && (
+      {testemunhos.length > 0 && (
         <Section tom="cinza">
           <Container>
             <h2 className="titulo text-3xl sm:text-4xl">Quem já esteve</h2>
             <div className="mt-10 grid gap-6 md:grid-cols-2">
-              {TESTEMUNHOS.slice(0, 2).map((t) => (
+              {testemunhos.slice(0, 2).map((t) => (
                 <figure key={t.id} className="rounded-3xl bg-white p-7 sm:p-9">
-                  <blockquote className="text-lg">“{t.texto}”</blockquote>
+                  <blockquote className="whitespace-pre-line text-lg">“{t.texto}”</blockquote>
                   <figcaption className="mt-5 text-sm font-semibold text-tinta-suave">
-                    {t.autor} · {t.atividade}
+                    {t.autor}{t.atividade ? ` · ${t.atividade}` : ""}
                   </figcaption>
                 </figure>
               ))}

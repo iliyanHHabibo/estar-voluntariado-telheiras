@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CalendarOff, ChevronLeft, ChevronRight, Plus, Users } from "lucide-react";
+import { CalendarOff, ChevronLeft, ChevronRight, Download, Plus, Users } from "lucide-react";
 import type { Dia } from "@/lib/disponibilidade";
 import { DIAS_SEMANA_CURTO, dataCurta, horaTexto, mesAnterior, mesSeguinte, rotuloMes } from "@/lib/tempo";
 import { ESTADOS_VISITA, lotacao, type EstadoVisita } from "@/lib/visitas";
@@ -44,6 +44,12 @@ export function PlaneamentoMes({ mes, hoje, dias, visitas, disponiveis, periodo,
       {/* Mês */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="titulo text-3xl">Planeamento</h1>
+        <a
+          href={`/admin/exportar/visitas?mes=${mes}`}
+          className="inline-flex min-h-11 items-center gap-2 rounded-full border-2 border-verde px-5 font-semibold text-verde hover:bg-verde hover:text-white"
+        >
+          <Download aria-hidden className="size-5" /> Exportar este mês
+        </a>
         <nav aria-label="Mês" className="flex items-center gap-2">
           <Link href={`/admin/planeamento?mes=${mesAnterior(mes)}`} aria-label="Mês anterior" className="inline-flex size-11 items-center justify-center rounded-full bg-white hover:bg-cinza">
             <ChevronLeft aria-hidden className="size-5" />

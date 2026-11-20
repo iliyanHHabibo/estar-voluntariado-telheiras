@@ -1,25 +1,31 @@
 -- =============================================================================
 -- ESTAR — dados iniciais (atividades e horários)
--- Aplicar DEPOIS da migração, no SQL Editor do Supabase.
+-- Aplicar DEPOIS das migrações (as duas), no SQL Editor do Supabase.
 -- =============================================================================
 
 begin;
 
-insert into public.atividades (slug, nome, resumo, descricao, regras, min_voluntarios, max_voluntarios, ordem)
+insert into public.atividades (slug, nome, resumo, descricao, regras, o_que_esperar, min_voluntarios, max_voluntarios, ordem)
 values
   ('clinica-sao-jose',
    'Clínica de S. José — Unidade 4',
    'Visitas para fazer companhia e conversar com quem está internado.',
-   'Visitamos a Unidade 4 da Clínica de S. José. Não é preciso fazer nada de especial: o que importa é estar, ouvir e conversar.',
+   'Visitamos a Unidade 4 da Clínica de S. José. Não é preciso fazer nada de especial: o que importa é estar, ouvir e conversar. Pode ser uma conversa, um jogo de cartas ou simplesmente companhia.',
    array['Seguir as indicações de higiene e segurança do local.',
-         'Não ir se estiveres doente. Avisa-nos, que alocamos outra pessoa.'],
+         'Não ir se estiveres doente (constipação, febre, gripe…). Avisa-nos que alocamos outra pessoa.'],
+   array['Visitas de 1 hora (pode ficar mais tempo, se for combinado).',
+         'Normalmente vais com mais 1 a 4 voluntários.',
+         'Os responsáveis do local explicam-te tudo à chegada.'],
    2, 5, 1),
   ('centro-de-dia',
    'Centro de Dia',
    'Tardes e manhãs de convívio com pessoas idosas.',
-   'Passamos tempo com as pessoas que frequentam o Centro de Dia: conversa, jogos, passeios curtos ou apenas companhia.',
-   array['Só há visitas em dias úteis.',
+   'Passamos tempo com as pessoas que frequentam o Centro de Dia: conversa, jogos, passeios curtos ou apenas companhia. É um bom primeiro passo para quem nunca fez voluntariado.',
+   array['Só há visitas em dias úteis (não há fins de semana nem feriados).',
          'Não partilhar informação pessoal dos utentes fora do centro.'],
+   array['Visitas de 1 hora (pode ficar mais tempo, se for combinado).',
+         'Normalmente vais com mais 1 a 4 voluntários.',
+         'Ambiente descontraído, com muita conversa.'],
    2, 5, 2)
 on conflict (slug) do nothing;
 

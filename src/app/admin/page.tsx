@@ -47,10 +47,10 @@ export default async function PainelAdmin() {
   const proximoPeriodo = (periodos ?? []).find((p) => p.abre_em > hoje);
 
   const cartoes = [
-    { titulo: "Voluntários ativos", valor: voluntarios, href: null, icone: Users },
+    { titulo: "Voluntários ativos", valor: voluntarios, href: "/admin/voluntarios", icone: Users },
     { titulo: "Visitas por completar", valor: porCompletar, href: "/admin/planeamento", icone: CalendarClock, alerta: porCompletar > 0 },
     { titulo: "Respostas à espera", valor: porResponder, href: "/admin/planeamento", icone: CalendarRange, nota: "voluntários que ainda não confirmaram" },
-    { titulo: "Testemunhos por rever", valor: testemunhos, href: null, icone: MessageSquareQuote, nota: "a revisão chega na próxima fase" },
+    { titulo: "Testemunhos por rever", valor: testemunhos, href: "/admin/testemunhos", icone: MessageSquareQuote, alerta: (testemunhos ?? 0) > 0 },
   ];
 
   return (

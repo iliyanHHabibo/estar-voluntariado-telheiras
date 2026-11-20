@@ -68,6 +68,18 @@ export async function exigirAdmin(): Promise<Utilizador> {
   return u;
 }
 
+/**
+ * Para as rotas que devolvem ficheiros (exportações): é admin, e com 2FA se for exigido?
+ * Não redireciona (um ficheiro não é uma página): quem chamar responde 404.
+ */
+export async function adminParaApi(): Promise<boolean> {
+  const u = await obterUtilizador();
+  if (!u) return false;
+  if (!(await souAdmin())) return false;
+  if (u.aal !== "aal2" && (await adminExige2fa())) return false;
+  return true;
+}
+
 /** Para onde mandar alguém logo depois de entrar. */
 export async function destinoDepoisDeEntrar(seguinte?: string | null): Promise<string> {
   const pedido = caminhoSeguro(seguinte);

@@ -34,17 +34,19 @@ Abre http://localhost:3000 no browser.
       as minhas visitas (confirmar / não posso / ficheiro de calendário), enviar testemunhos, resumo da conta
 - [x] Fase 1C-2 (área de admin): períodos de disponibilidades, planeamento do mês, criar visitas, alocar
       (com avisos de conflitos), estados da visita, mensagem para o responsável, presenças
-- [ ] Fase 1C-3: voluntários (lista e fichas), atividades (editar horários e fechos), moderação de testemunhos
+- [x] Fase 1C-3: voluntários (lista, pesquisa, ficha, notas, ativar/desativar), atividades (editar textos, horários,
+      limites, contacto do responsável e feriados), moderação de testemunhos, páginas públicas a ler da base de dados,
+      exportações para Excel
 - [ ] Emails ("estás alocado", cancelamentos) e publicação online
 
 ## Onde mexer
 
 | Quero mudar… | Ficheiro |
 |---|---|
-| Textos das atividades, horários, regras | `src/lib/atividades.ts` |
+| Textos das atividades, horários, regras, feriados | no site, em **Admin → Atividades** (`src/lib/atividades.ts` é só o texto de reserva se a base de dados falhar) |
 | Email, idade mínima, menu | `src/lib/site.ts` |
 | Cores e tipografia | `src/app/globals.css` |
-| Testemunhos publicados | `src/lib/testemunhos.ts` (vai passar para a base de dados) |
+| Testemunhos publicados | no site, em **Admin → Testemunhos** |
 | Cabeçalhos de segurança e CSP | `next.config.ts` |
 | Base de dados, permissões (RLS) | `supabase/migrations/` (nunca editar uma migração já aplicada: criar uma nova) |
 | Login, sessão, quem é admin | `src/lib/auth.ts`, `src/proxy.ts` |
@@ -54,7 +56,7 @@ Abre http://localhost:3000 no browser.
 ## Testes das permissões da base de dados
 
 `supabase/tests/correr.sh` cria uma base de dados Postgres temporária, aplica a migração e verifica
-~135 regras (incl. o fluxo completo do admin: criar → alocar → comunicar → responder) (ex.: "voluntário NÃO vê dados de outro", "admin sem 2FA NÃO vê perfis").
+~180 regras (incl. o fluxo completo do admin: criar → alocar → comunicar → responder; e a gestão de atividades, testemunhos e notas) (ex.: "voluntário NÃO vê dados de outro", "admin sem 2FA NÃO vê perfis").
 Precisa de PostgreSQL instalado localmente. Corre-o sempre que mudares a base de dados.
 
 ## Notas

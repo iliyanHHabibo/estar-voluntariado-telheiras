@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { CheckCircle2, Clock, MapPin, ShieldAlert } from "lucide-react";
 import { ButtonLink, Container, PageHeader, Section } from "@/components/ui";
-import { ATIVIDADES, REGRAS_GERAIS } from "@/lib/atividades";
+import { REGRAS_GERAIS } from "@/lib/atividades";
+import { getAtividades } from "@/lib/publico";
 import { ROTA_INSCRICAO } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -9,7 +10,8 @@ export const metadata: Metadata = {
   description: "As atividades de voluntariado do ESTAR: Clínica de S. José (Unidade 4) e Centro de Dia.",
 };
 
-export default function Atividades() {
+export default async function Atividades() {
+  const atividades = await getAtividades();
   return (
     <>
       <PageHeader
@@ -19,7 +21,8 @@ export default function Atividades() {
 
       <Section>
         <Container className="space-y-16">
-          {ATIVIDADES.map((a) => (
+          {atividades.length === 0 && <p className="text-lg text-tinta-suave">De momento não há atividades abertas. Volta em breve.</p>}
+          {atividades.map((a) => (
             <article key={a.slug} id={a.slug} className="scroll-mt-28 grid gap-8 lg:grid-cols-5">
               <div className="lg:col-span-2">
                 <h2 className="titulo text-2xl sm:text-3xl">{a.nome}</h2>

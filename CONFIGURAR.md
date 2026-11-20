@@ -18,9 +18,13 @@ Faz o mesmo mais tarde no **estar-prod** (com o endereço do site em vez de `loc
 No menu **SQL Editor** → **New query**, corre **por esta ordem** (copiar o ficheiro todo → *Run*):
 
 1. `supabase/migrations/20261114120000_esquema_inicial.sql`
-2. `supabase/seed.sql`
+2. `supabase/migrations/20261120120000_atividades_o_que_esperar.sql`
+3. `supabase/seed.sql`
 
-Deve aparecer "Success" nas duas. O aviso *"destructive operations"* é esperado (são as linhas `revoke`,
+> **Se já tinhas os passos 1 e 3 feitos** (projeto já a funcionar): corre **só o passo 2**. Não apaga nada e
+> passa a atividade a ter o campo "o que esperar", preenchido com o texto que o site já mostrava.
+
+Deve aparecer "Success" em todas. O aviso *"destructive operations"* é esperado (são as linhas `revoke`,
 que retiram permissões por omissão) — podes confirmar.
 
 > **Recomeçar do zero (só no estar-dev):** corre `supabase/apagar-tudo-dev.sql` e depois outra vez os dois
