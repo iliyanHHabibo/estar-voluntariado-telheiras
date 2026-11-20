@@ -52,6 +52,25 @@ export function diasComJanelas(
   }));
 }
 
+/**
+ * Atividades que funcionam num dado dia da semana (em pelo menos uma data do mês), com o horário
+ * mais largo entre essas datas. Serve para o atalho "repetir todas as semanas" só oferecer o que existe.
+ */
+export function janelasDoDiaDaSemana(dias: Dia[], diaSemana: number): Janela[] {
+  const mapa = new Map<string, Janela>();
+  for (const d of dias) {
+    if (d.diaSemana !== diaSemana) continue;
+    for (const j of d.janelas) {
+      const atual = mapa.get(j.atividade_id);
+      mapa.set(
+        j.atividade_id,
+        atual ? { ...atual, abre: Math.min(atual.abre, j.abre), fecha: Math.max(atual.fecha, j.fecha) } : { ...j },
+      );
+    }
+  }
+  return [...mapa.values()];
+}
+
 /** O intervalo cabe no horário de alguma atividade (a escolhida, ou qualquer uma se for "qualquer")? */
 export function intervaloValido(janelas: Janela[], atividadeId: string | null, inicio: number, fim: number): boolean {
   if (fim - inicio < DURACAO_MINIMA) return false;

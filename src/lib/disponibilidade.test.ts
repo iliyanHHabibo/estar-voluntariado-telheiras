@@ -17,6 +17,7 @@ import {
   diasComJanelas,
   intervaloValido,
   janelasDoDia,
+  janelasDoDiaDaSemana,
   repetirSemanalmente,
   sobrepoe,
   type AtividadeBase,
@@ -199,4 +200,25 @@ test("ics: estrutura, horas locais e alarmes", () => {
   assert.equal(ics.split("BEGIN:VALARM").length - 1, 2);
   assert.ok(ics.includes("TRIGGER:-P1D") && ics.includes("TRIGGER:-PT2H"));
   assert.ok(!/[^\r]\n/.test(ics), "todas as quebras de linha devem ser CRLF");
+});
+
+test("atalho: ao domingo só existe a Clínica; à terça existem as duas, cada uma com o seu horário", () => {
+  const dias = diasComJanelas("2026-12-01", atividades, horarios, fechos);
+  assert.deepEqual(janelasDoDiaDaSemana(dias, 7).map((j) => j.atividade_id), [CLINICA]);
+  const terca = janelasDoDiaDaSemana(dias, 2);
+  assert.deepEqual(terca.map((j) => [j.atividade_id, j.abre, j.fecha]), [
+    [CLINICA, 600, 1080],
+    [CENTRO, 600, 1020], // fecha às 17h
+  ]);
+});
+
+test("atalho: um feriado não tira a atividade do dia da semana (há outras terças)", () => {
+  const dias = diasComJanelas("2026-12-01", atividades, horarios, fechos); // terça 8 fechada para o Centro
+  assert.ok(janelasDoDiaDaSemana(dias, 2).some((j) => j.atividade_id === CENTRO));
+});
+
+test("atalho: se a atividade estiver fechada em todas as datas desse dia da semana, não é oferecida", () => {
+  const todosOsSabados = ["2026-12-05", "2026-12-12", "2026-12-19", "2026-12-26"].map((data) => ({ atividade_id: CLINICA, data }));
+  const dias = diasComJanelas("2026-12-01", atividades, horarios, todosOsSabados);
+  assert.deepEqual(janelasDoDiaDaSemana(dias, 6), []);
 });

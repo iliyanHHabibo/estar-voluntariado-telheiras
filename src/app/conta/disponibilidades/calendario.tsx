@@ -10,7 +10,7 @@ import {
   type EstadoDisp,
 } from "./actions";
 import { Alerta, BotaoSubmeter, CAMPO, Rotulo } from "@/components/forms";
-import type { Dia, Janela } from "@/lib/disponibilidade";
+import { janelasDoDiaDaSemana, type Dia, type Janela } from "@/lib/disponibilidade";
 import { DIAS_SEMANA_CURTO, opcoesDeHora, rotuloHora, hhmm } from "@/lib/tempo";
 
 export type MinhaDisp = { id: string; data: string; inicio: number; fim: number; atividade_id: string | null };
@@ -149,10 +149,16 @@ function AdicionarNoDia({ dia }: { dia: Dia }) {
 // ------------------------------------------------------------------ repetir todas as semanas
 const SEMANAS = ["segundas-feiras", "terças-feiras", "quartas-feiras", "quintas-feiras", "sextas-feiras", "sábados", "domingos"];
 
-function Repetir({ mes, dias, atividades, abertoPorOmissao }: { mes: string; dias: Dia[]; atividades: AtividadeUI[]; abertoPorOmissao: boolean }) {
+function Repetir({ mes, dias, abertoPorOmissao }: { mes: string; dias: Dia[]; abertoPorOmissao: boolean }) {
   const [estado, acao] = useActionState<EstadoDisp, FormData>(repetirTodasAsSemanas, {});
-  const todas = dias.flatMap((d) => d.janelas);
-  const { lo, hi } = intervaloDe(todas.length ? todas : [{ atividade_id: "", nome: "", abre: 600, fecha: 1080 }]);
+  const [diaSemana, setDiaSemana] = useState(2);
+  const [atividade, setAtividade] = useState("");
+
+  // Só oferecemos o que existe nesse dia da semana (ao domingo, p.ex., não há Centro de Dia)
+  const doDia = janelasDoDiaDaSemana(dias, diaSemana);
+  const atividadeEfetiva = doDia.some((x) => x.atividade_id === atividade) ? atividade : "";
+  const escolhidas = atividadeEfetiva ? doDia.filter((x) => x.atividade_id === atividadeEfetiva) : doDia;
+  const { lo, hi } = escolhidas.length ? intervaloDe(escolhidas) : { lo: 600, hi: 1080 };
 
   return (
     <details open={abertoPorOmissao} className="rounded-3xl border-2 border-verde/30 bg-white p-5 sm:p-6">
@@ -167,7 +173,13 @@ function Repetir({ mes, dias, atividades, abertoPorOmissao }: { mes: string; dia
         <input type="hidden" name="mes" value={mes} />
         <div>
           <Rotulo htmlFor="rep-dia">Todas as</Rotulo>
-          <select id="rep-dia" name="dia_semana" defaultValue="2" className={`${CAMPO} !mt-1 !w-auto`}>
+          <select
+            id="rep-dia"
+            name="dia_semana"
+            value={diaSemana}
+            onChange={(e) => setDiaSemana(Number(e.target.value))}
+            className={`${CAMPO} !mt-1 !w-auto`}
+          >
             {SEMANAS.map((s, i) => (
               <option key={s} value={i + 1}>
                 {s}
@@ -175,21 +187,33 @@ function Repetir({ mes, dias, atividades, abertoPorOmissao }: { mes: string; dia
             ))}
           </select>
         </div>
-        <div className="min-w-48 flex-1">
-          <Rotulo htmlFor="rep-atv">Atividade</Rotulo>
-          <select id="rep-atv" name="atividade_id" defaultValue="" className={`${CAMPO} !mt-1`}>
-            <option value="">Qualquer atividade</option>
-            {atividades.map((a) => (
-              <option key={a.id} value={a.id}>
-                {a.nome}
-              </option>
-            ))}
-          </select>
-        </div>
-        <SeletorHoras id="rep" lo={lo} hi={hi} />
-        <BotaoSubmeter variante="escuro" pendente="A adicionar…" className="min-h-11 !py-2">
-          Adicionar a todas
-        </BotaoSubmeter>
+        {doDia.length === 0 ? (
+          <p className="min-w-48 flex-1 pb-3 text-tinta-suave">Nenhuma atividade funciona nesse dia da semana neste mês.</p>
+        ) : (
+          <>
+            <div className="min-w-48 flex-1">
+              <Rotulo htmlFor="rep-atv">Atividade</Rotulo>
+              <select
+                id="rep-atv"
+                name="atividade_id"
+                value={atividadeEfetiva}
+                onChange={(e) => setAtividade(e.target.value)}
+                className={`${CAMPO} !mt-1`}
+              >
+                <option value="">Qualquer atividade</option>
+                {doDia.map((x) => (
+                  <option key={x.atividade_id} value={x.atividade_id}>
+                    {x.nome}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <SeletorHoras key={`${lo}-${hi}`} id="rep" lo={lo} hi={hi} />
+            <BotaoSubmeter variante="escuro" pendente="A adicionar…" className="min-h-11 !py-2">
+              Adicionar a todas
+            </BotaoSubmeter>
+          </>
+        )}
         {estado.erro && (
           <div className="w-full">
             <Alerta tipo="erro">{estado.erro}</Alerta>
@@ -254,7 +278,7 @@ export function Calendario({
 
   return (
     <div className="space-y-8">
-      {editavel && <Repetir mes={mes} dias={dias} atividades={atividades} abertoPorOmissao={minhas.length === 0} />}
+      {editavel && <Repetir mes={mes} dias={dias} abertoPorOmissao={minhas.length === 0} />}
 
       <ol className="divide-y divide-black/10 rounded-3xl border-2 border-black/10">
         {dias.map((dia) => {
