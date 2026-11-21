@@ -6,7 +6,7 @@ import { exigirVoluntario } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { diasComJanelas } from "@/lib/disponibilidade";
 import { dataCurta, hojeLisboa, mesSeguinte, minutos, primeiroDiaDoMes, rotuloMes } from "@/lib/tempo";
-import { ContaNav } from "../conta-nav";
+import { Separadores } from "../separadores";
 import { Calendario } from "./calendario";
 
 export const metadata: Metadata = { title: "As minhas disponibilidades", robots: { index: false } };
@@ -17,7 +17,7 @@ export default function Disponibilidades({ searchParams }: PageProps<"/conta/dis
       <PageHeader titulo="Disponibilidades" subtitulo="Diz-nos, uma vez por mês, quando podes ir." />
       <Section>
         <Container>
-          <ContaNav />
+          <Separadores />
           <Suspense fallback={<p>A carregar…</p>}>
             <Conteudo searchParams={searchParams} />
           </Suspense>

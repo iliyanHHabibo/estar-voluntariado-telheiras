@@ -5,7 +5,7 @@ import { Container, PageHeader, Section } from "@/components/ui";
 import { exigirVoluntario } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { dataPorExtenso, hojeLisboa, horaTexto } from "@/lib/tempo";
-import { ContaNav } from "../conta-nav";
+import { Separadores } from "../separadores";
 import { Resposta } from "./resposta";
 
 export const metadata: Metadata = { title: "As minhas visitas", robots: { index: false } };
@@ -16,7 +16,7 @@ export default function Visitas() {
       <PageHeader titulo="As minhas visitas" subtitulo="As visitas em que a equipa te incluiu." />
       <Section>
         <Container>
-          <ContaNav />
+          <Separadores />
           <Suspense fallback={<p>A carregar…</p>}>
             <Conteudo />
           </Suspense>

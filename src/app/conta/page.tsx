@@ -10,7 +10,7 @@ import { createClient } from "@/lib/supabase/server";
 import { dataCurta, dataPorExtenso, hojeLisboa, horaTexto, rotuloMes } from "@/lib/tempo";
 import { sair } from "../entrar/actions";
 import { ApagarContaForm } from "./apagar-form";
-import { ContaNav } from "./conta-nav";
+import { Separadores } from "./separadores";
 
 export const metadata: Metadata = { title: "A minha conta", robots: { index: false } };
 
@@ -20,7 +20,7 @@ export default function Conta({ searchParams }: PageProps<"/conta">) {
       <PageHeader titulo="A minha conta" />
       <Section>
         <Container>
-          <ContaNav />
+          <Separadores />
           <Suspense fallback={<p>A carregar…</p>}>
             <Conteudo searchParams={searchParams} />
           </Suspense>

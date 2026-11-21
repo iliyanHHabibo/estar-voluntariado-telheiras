@@ -4,7 +4,7 @@ import { Container, PageHeader, Section } from "@/components/ui";
 import { exigirVoluntario } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { dataCurta } from "@/lib/tempo";
-import { ContaNav } from "../conta-nav";
+import { Separadores } from "../separadores";
 import { ApagarTestemunho, NovoTestemunho } from "./formularios";
 
 export const metadata: Metadata = { title: "Testemunhos", robots: { index: false } };
@@ -15,7 +15,7 @@ export default function Testemunhos() {
       <PageHeader titulo="Testemunhos" subtitulo="Conta-nos como foi. Talvez a tua história inspire alguém." />
       <Section>
         <Container>
-          <ContaNav />
+          <Separadores />
           <Suspense fallback={<p>A carregar…</p>}>
             <Conteudo />
           </Suspense>

@@ -1,17 +1,21 @@
 "use client";
 
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const ITENS = [
   { href: "/conta", label: "Resumo", exato: true },
   { href: "/conta/disponibilidades", label: "Disponibilidades" },
-  { href: "/conta/visitas", label: "As minhas visitas" },
+  { href: "/conta/visitas", label: "As minhas visitas", contador: true },
   { href: "/conta/testemunhos", label: "Testemunhos" },
 ];
 
-/** Separadores da área do voluntário (aparecem no topo de cada página da conta). */
-export function ContaNav() {
+/**
+ * Separadores da área do voluntário (aparecem no topo de cada página da conta).
+ * `contador`: o número de visitas por responder (vem do servidor; ver separadores.tsx).
+ */
+export function ContaNav({ contador }: { contador?: ReactNode }) {
   const pathname = usePathname();
   return (
     <nav aria-label="A minha conta" className="-mx-5 mb-10 overflow-x-auto px-5 sm:mx-0 sm:px-0">
@@ -28,6 +32,7 @@ export function ContaNav() {
                 }`}
               >
                 {i.label}
+                {i.contador && contador}
               </Link>
             </li>
           );
