@@ -9,6 +9,20 @@ import { mensagemDeErro } from "@/lib/erros";
 import type { EstadoAdmin } from "@/lib/estado-admin";
 import { hojeLisboa } from "@/lib/tempo";
 import { contarAlocacoes, erroDeVisita, motivoParaNaoMudar, type EstadoVisita } from "@/lib/visitas";
+import {
+  avisarAlocados,
+  avisarAlteracao,
+  avisarCancelamento,
+  avisarRemocao,
+  lerVisitaParaEmail,
+  mudouParaOsVoluntarios,
+  resumoDoEnvio,
+} from "@/lib/emails/avisos-visitas";
+
+/** Junta a mensagem principal com o resultado do envio de emails. */
+function comEnvio(ok: string, envio?: { ok?: string; aviso?: string }): EstadoAdmin {
+  return { ok: envio?.ok ? `${ok} ${envio.ok}` : ok, aviso: envio?.aviso };
+}
 
 const hora = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Hora inválida.");
 const visitaSchema = z.object({
@@ -70,12 +84,20 @@ export async function atualizarVisita(_p: EstadoAdmin, fd: FormData): Promise<Es
   if (e) return { erro: e };
 
   const supabase = await createClient();
+  const antes = await lerVisitaParaEmail(supabase, id.data);
   const { error } = await supabase.from("visitas").update(r.data).eq("id", id.data);
   if (error) {
     console.error("[visitas] atualizar:", error.code, error.message);
     return { erro: mensagemDeErro(error) };
   }
   atualizarEcras(id.data);
+  // Se os voluntários já sabiam da visita e mudou o dia, a hora ou o local, avisamo-los
+  if (antes?.estado === "comunicada") {
+    const depois = await lerVisitaParaEmail(supabase, id.data);
+    if (depois && mudouParaOsVoluntarios(antes.visita, depois.visita)) {
+      return comEnvio("Alterações guardadas.", resumoDoEnvio(await avisarAlteracao(supabase, id.data, antes.visita)));
+    }
+  }
   return { ok: "Alterações guardadas." };
 }
 
@@ -135,6 +157,13 @@ export async function mudarEstadoVisita(_p: EstadoAdmin, fd: FormData): Promise<
     return { erro: mensagemDeErro(error) };
   }
   atualizarEcras(r.data.id);
+  if (r.data.para === "comunicada") {
+    return comEnvio("Visita comunicada.", resumoDoEnvio(await avisarAlocados(supabase, r.data.id)));
+  }
+  if (r.data.para === "cancelada") {
+    const envio = await avisarCancelamento(supabase, r.data.id);
+    return comEnvio("Visita cancelada.", envio.enviados || envio.falhados ? resumoDoEnvio(envio) : undefined);
+  }
   return { ok: "Estado atualizado." };
 }
 
@@ -156,22 +185,28 @@ export async function alocarVoluntario(_p: EstadoAdmin, fd: FormData): Promise<E
   if (v.estado === "cancelada" || v.estado === "realizada") return { erro: "Esta visita já não aceita alterações." };
   if (!p || p.estado !== "ativo") return { erro: "Essa pessoa não está ativa." };
 
+  let alocacaoId: string;
   if (existente) {
     if (existente.estado === "proposta" || existente.estado === "confirmada") return { erro: "Essa pessoa já está alocada a esta visita." };
-    // Tinha recusado ou cancelado: voltamos a propor
+    // Tinha recusado ou cancelado: voltamos a propor (e a avisar, se a visita já foi comunicada)
     const { error } = await supabase
       .from("alocacoes")
-      .update({ estado: "proposta", motivo: null, respondido_em: null })
+      .update({ estado: "proposta", motivo: null, respondido_em: null, notificada_em: null })
       .eq("id", existente.id);
     if (error) return { erro: mensagemDeErro(error) };
+    alocacaoId = existente.id as string;
   } else {
-    const { error } = await supabase.from("alocacoes").insert(r.data);
-    if (error) {
-      console.error("[visitas] alocar:", error.code, error.message);
-      return { erro: error.code === "23505" ? "Essa pessoa já está alocada a esta visita." : mensagemDeErro(error) };
+    const { data: nova, error } = await supabase.from("alocacoes").insert(r.data).select("id").single();
+    if (error || !nova) {
+      console.error("[visitas] alocar:", error?.code, error?.message);
+      return { erro: error?.code === "23505" ? "Essa pessoa já está alocada a esta visita." : mensagemDeErro(error) };
     }
+    alocacaoId = nova.id as string;
   }
   atualizarEcras(r.data.visita_id);
+  if (v.estado === "comunicada") {
+    return comEnvio("Alocado.", resumoDoEnvio(await avisarAlocados(supabase, r.data.visita_id, alocacaoId)));
+  }
   return { ok: "Alocado." };
 }
 
@@ -182,9 +217,15 @@ export async function removerAlocacao(_p: EstadoAdmin, fd: FormData): Promise<Es
   const r = idSchema.safeParse({ id: fd.get("id"), visita_id: fd.get("visita_id") });
   if (!r.success) return { erro: "Pedido inválido." };
   const supabase = await createClient();
-  const { error } = await supabase.from("alocacoes").delete().eq("id", r.data.id);
+  const antes = await lerVisitaParaEmail(supabase, r.data.visita_id);
+  const a = antes?.alocacoes.find((x) => x.id === r.data.id);
+  const { error } = await supabase.from("alocacoes").delete().eq("id", r.data.id).eq("visita_id", r.data.visita_id);
   if (error) return { erro: mensagemDeErro(error) };
   atualizarEcras(r.data.visita_id);
+  // Só avisamos quem já sabia da visita e ainda contava ir
+  if (antes?.estado === "comunicada" && a?.notificada_em && ["proposta", "confirmada"].includes(a.estado) && a.voluntarios) {
+    return comEnvio("Removido.", resumoDoEnvio(await avisarRemocao(a.voluntarios, antes.visita)));
+  }
   return { ok: "Removido." };
 }
 

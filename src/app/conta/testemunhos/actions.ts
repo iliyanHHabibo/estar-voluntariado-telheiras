@@ -1,10 +1,13 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { z } from "zod";
 import { exigirVoluntario } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { mensagemDeErro } from "@/lib/erros";
+import { emailEquipa, enviarEmail, urlDoSite } from "@/lib/emails/enviar";
+import { emailEquipaTestemunho } from "@/lib/emails/modelos";
 
 export type EstadoTestemunho = { ok?: string; erro?: string; campos?: { texto?: string; atividade_id?: string; anonimo?: boolean } };
 
@@ -19,7 +22,7 @@ const schema = z.object({
 });
 
 export async function enviarTestemunho(_prev: EstadoTestemunho, fd: FormData): Promise<EstadoTestemunho> {
-  const { u } = await exigirVoluntario("/conta/testemunhos");
+  const { u, perfil } = await exigirVoluntario("/conta/testemunhos");
   const bruto = {
     texto: String(fd.get("texto") ?? ""),
     atividade_id: String(fd.get("atividade_id") ?? ""),
@@ -44,6 +47,24 @@ export async function enviarTestemunho(_prev: EstadoTestemunho, fd: FormData): P
     return { erro: mensagemDeErro(error, "Não foi possível enviar. Tenta outra vez."), campos };
   }
   revalidatePath("/conta/testemunhos");
+
+  // Avisar a equipa de que há um testemunho para rever (com limite diário por pessoa)
+  const para = emailEquipa();
+  if (para) {
+    const [{ data: podeAvisar }, { data: atv }] = await Promise.all([
+      supabase.rpc("registar_aviso_equipa", { p_tipo: "testemunho" }),
+      r.data.atividade_id ? supabase.from("atividades").select("nome").eq("id", r.data.atividade_id).maybeSingle() : Promise.resolve({ data: null }),
+    ]);
+    if (podeAvisar === true) {
+      const email = emailEquipaTestemunho({
+        autor: r.data.anonimo ? `${perfil.nome} (pediu para ser anónimo)` : perfil.nome,
+        atividade: (atv as { nome: string } | null)?.nome ?? null,
+        texto: r.data.texto,
+        url: urlDoSite("/admin/testemunhos"),
+      });
+      after(() => enviarEmail({ para }, email, "testemunho").then(() => undefined));
+    }
+  }
   return { ok: "Obrigado por partilhares! A equipa vai ler o teu testemunho e decidir se o publica no site." };
 }
 

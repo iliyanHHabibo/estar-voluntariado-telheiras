@@ -19,15 +19,17 @@ No menu **SQL Editor** → **New query**, corre **por esta ordem** (copiar o fic
 
 1. `supabase/migrations/20261114120000_esquema_inicial.sql`
 2. `supabase/migrations/20261120120000_atividades_o_que_esperar.sql`
-3. `supabase/seed.sql`
+3. `supabase/migrations/20261121120000_emails_e_exportacoes.sql`
+4. `supabase/seed.sql`
 
-> **Se já tinhas os passos 1 e 3 feitos** (projeto já a funcionar): corre **só o passo 2**. Não apaga nada e
-> passa a atividade a ter o campo "o que esperar", preenchido com o texto que o site já mostrava.
+> **Se o projeto já estava a funcionar:** corre só as migrações que ainda não correste (pela ordem). Não apagam
+> nada. A 2 junta o campo "o que esperar" às atividades; a 3 prepara os emails automáticos (lembra-se de quem já
+> foi avisado), o registo das exportações Excel e o limite de avisos à equipa.
 
 Deve aparecer "Success" em todas. O aviso *"destructive operations"* é esperado (são as linhas `revoke`,
 que retiram permissões por omissão) — podes confirmar.
 
-> **Recomeçar do zero (só no estar-dev):** corre `supabase/apagar-tudo-dev.sql` e depois outra vez os dois
+> **Recomeçar do zero (só no estar-dev):** corre `supabase/apagar-tudo-dev.sql` e depois outra vez os
 > ficheiros acima. Apaga todas as tabelas e dados (mas não as contas de utilizador). **Nunca no estar-prod.**
 
 ## 3. Autenticação
@@ -94,12 +96,15 @@ Muda **dois** modelos — **Magic Link** e **Confirm signup** — para o mesmo c
 
 1. *Project Settings → API Keys* → copia o **Project URL** e a **Publishable key** (`sb_publishable_…`).
 2. Na pasta do projeto, copia `.env.example` para `.env.local` e preenche essas duas linhas.
-3. Corre:
+3. *(Opcional, para o site enviar os emails das visitas)* preenche também `SMTP_USER`, `SMTP_PASSWORD`
+   (uma palavra-passe de aplicação do Google — podes criar uma só para o teu PC) e `SITE_URL=http://localhost:3000`.
+   Sem isto, o site funciona na mesma e avisa os admins de que os emails não estão configurados.
+4. Corre:
    ```bash
    npm install
    npm run dev
    ```
-4. Abre http://localhost:3000.
+5. Abre http://localhost:3000.
 
 ## 5. Tornar-te o primeiro admin
 
@@ -127,13 +132,10 @@ Sem o SMTP do passo 3.3, o Supabase só envia ~2 emails por hora e **só para em
 (o teu). Chega para os primeiros testes feitos por ti; muda os modelos de email (3.4) na mesma.
 Para testar com mais pessoas, configura o Gmail.
 
-## 6. Abrir um período de disponibilidades (enquanto o painel não tem esta opção)
+## 6. Abrir um período de disponibilidades
 
-No SQL Editor (ajusta as datas):
-```sql
-insert into public.periodos_disponibilidade (mes, abre_em, fecha_em)
-values ('2026-12-01', '2026-11-15', '2026-11-25');
-```
+No painel: **Admin → Períodos → Abrir uma nova recolha**. Enquanto está aberto, o botão
+**"Avisar voluntários por email"** envia um email a todos os voluntários ativos (em cópia oculta).
 
 ## Se um admin perder o telemóvel (2FA)
 

@@ -177,6 +177,29 @@ select tests.ok(not exists (select 1 from public.atividade_horarios where ativid
 select tests.ok(not exists (select 1 from public.atividade_contactos where atividade_id = :'nova'), 'e o contacto do responsável');
 select tests.ok(not exists (select 1 from public.atividade_fechos where atividade_id = :'nova'), 'e os feriados próprios dela');
 select tests.ok(exists (select 1 from public.atividade_fechos where atividade_id is null and data = '2027-12-24'), 'os fechos "para tudo" mantêm-se');
+
+-- ================= REGISTO DE EXPORTAÇÕES =================
+select public.registar_exportacao('voluntarios');
+select tests.ok((select count(*) = 1 from public.auditoria where acao = 'exportar' and tabela = 'voluntarios' and ator_id = :ADM), 'exportar dados pessoais fica registado (quem e quando)');
+select tests.falha('select public.registar_exportacao(''tudo'')', 'pedido_invalido', 'só se registam exportações conhecidas');
+select tests.entrar(:ADM, 'aal1');
+select tests.falha('select public.registar_exportacao(''voluntarios'')', 'sem_permissao', 'admin sem 2FA não exporta');
+select tests.entrar(:VOL);
+select tests.falha('select public.registar_exportacao(''voluntarios'')', 'sem_permissao', 'voluntário não exporta');
+select tests.ok(tests.linhas('update public.alocacoes set notificada_em = now()') = 0, 'voluntário NÃO marca alocações como notificadas');
+
+-- ================= LIMITE DE AVISOS À EQUIPA =================
+select tests.ok((select bool_and(public.registar_aviso_equipa('testemunho')) from generate_series(1, 3)), '3 avisos de testemunho por dia são aceites');
+select tests.ok(not public.registar_aviso_equipa('testemunho'), 'o 4.º aviso de testemunho no mesmo dia é recusado');
+select tests.ok(public.registar_aviso_equipa('resposta'), 'o limite é separado por tipo');
+select tests.falha('select public.registar_aviso_equipa(''outro'')', 'pedido_invalido', 'só tipos conhecidos');
+select tests.falha('select count(*) from private.avisos_equipa', 'permission denied', 'ninguém lê a tabela dos avisos');
+reset role;
+
+set role anon;
+select tests.sair();
+select tests.falha('select public.registar_exportacao(''voluntarios'')', 'permission denied', 'o público nem consegue chamar a função');
+select tests.falha('select public.registar_aviso_equipa(''testemunho'')', 'permission denied', 'o público não gera avisos à equipa');
 reset role;
 
 select 'CONTEÚDO DO ADMIN: TUDO OK';

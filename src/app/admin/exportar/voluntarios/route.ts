@@ -40,6 +40,13 @@ export async function GET(req: NextRequest) {
       hoje,
     );
 
+    // Fica registado quem exportou dados pessoais e quando (sem os dados). Sem registo, não há ficheiro.
+    const reg = await supabase.rpc("registar_exportacao", { p_o_que: "voluntarios" });
+    if (reg.error) {
+      console.error("[exportar/voluntarios] falha a registar:", reg.error.code, reg.error.message);
+      return falhou();
+    }
+
     const ficheiro = await gerarExcel(COLUNAS_VOLUNTARIOS, linhasVoluntarios(linhas), "Voluntários");
     return new Response(new Uint8Array(ficheiro), {
       headers: {

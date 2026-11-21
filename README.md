@@ -37,7 +37,10 @@ Abre http://localhost:3000 no browser.
 - [x] Fase 1C-3: voluntários (lista, pesquisa, ficha, notas, ativar/desativar), atividades (editar textos, horários,
       limites, contacto do responsável e feriados), moderação de testemunhos, páginas públicas a ler da base de dados,
       exportações para Excel
-- [ ] Emails ("estás alocado", cancelamentos) e publicação online
+- [x] Emails automáticos pelo Gmail: "estás nesta visita" (com ficheiro de calendário), visita alterada/cancelada,
+      retirado da visita, recolha de disponibilidades aberta; avisos à equipa (cancelamentos, testemunhos novos);
+      registo de quem exporta dados pessoais
+- [ ] Publicação online (ver [`PUBLICAR.md`](./PUBLICAR.md))
 
 ## Onde mexer
 
@@ -45,6 +48,7 @@ Abre http://localhost:3000 no browser.
 |---|---|
 | Textos das atividades, horários, regras, feriados | no site, em **Admin → Atividades** (`src/lib/atividades.ts` é só o texto de reserva se a base de dados falhar) |
 | Email, idade mínima, menu | `src/lib/site.ts` |
+| Texto dos emails automáticos | `src/lib/emails/modelos.ts` (testado em `modelos.test.ts`) |
 | Cores e tipografia | `src/app/globals.css` |
 | Testemunhos publicados | no site, em **Admin → Testemunhos** |
 | Cabeçalhos de segurança e CSP | `next.config.ts` |
@@ -55,8 +59,8 @@ Abre http://localhost:3000 no browser.
 
 ## Testes das permissões da base de dados
 
-`supabase/tests/correr.sh` cria uma base de dados Postgres temporária, aplica a migração e verifica
-~180 regras (incl. o fluxo completo do admin: criar → alocar → comunicar → responder; e a gestão de atividades, testemunhos e notas) (ex.: "voluntário NÃO vê dados de outro", "admin sem 2FA NÃO vê perfis").
+`supabase/tests/correr.sh` cria uma base de dados Postgres temporária, aplica as migrações e verifica
+~200 regras (incl. o fluxo completo do admin: criar → alocar → comunicar → responder; e a gestão de atividades, testemunhos e notas) (ex.: "voluntário NÃO vê dados de outro", "admin sem 2FA NÃO vê perfis").
 Precisa de PostgreSQL instalado localmente. Corre-o sempre que mudares a base de dados.
 
 ## Notas

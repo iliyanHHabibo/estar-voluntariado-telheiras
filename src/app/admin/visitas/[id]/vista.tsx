@@ -18,6 +18,7 @@ import {
   AlocarOutra,
   ApagarVisita,
   CopiarTexto,
+  ResultadoDasAcoes,
   EditarVisita,
   Presenca,
   RemoverAlocacao,
@@ -99,6 +100,10 @@ export function DetalheVisita({ visita: v, atividades, alocados, disponiveis, ou
       <Link href={`/admin/planeamento?mes=${primeiroDiaDoMes(v.data)}`} className="inline-flex items-center gap-2 font-semibold text-verde hover:underline">
         <ArrowLeft aria-hidden className="size-4" /> Planeamento de {rotuloMes(primeiroDiaDoMes(v.data))}
       </Link>
+
+      <div className="sticky top-20 z-10">
+        <ResultadoDasAcoes />
+      </div>
 
       {/* Cabeçalho da visita */}
       <section className="space-y-5 rounded-3xl bg-white p-6 sm:p-8">

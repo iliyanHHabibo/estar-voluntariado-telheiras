@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { Check, ClipboardCopy } from "lucide-react";
 import {
   alocarVoluntario,
@@ -15,6 +15,35 @@ import type { EstadoAdmin } from "@/lib/estado-admin";
 import { hhmm, minutos, opcoesDeHora, rotuloHora } from "@/lib/tempo";
 
 type AcaoServidor = (prev: EstadoAdmin, fd: FormData) => Promise<EstadoAdmin>;
+
+/**
+ * Mensagens de sucesso/aviso das ações (p.ex. "Visita comunicada. Enviámos 3 emails.").
+ * O botão que fez a ação muitas vezes desaparece logo a seguir (o estado da visita muda),
+ * por isso a mensagem vai para uma faixa fixa no topo da página.
+ */
+const EVENTO = "estar:resultado-acao";
+function anunciar(e: EstadoAdmin) {
+  if (e.ok || e.aviso) window.dispatchEvent(new CustomEvent(EVENTO, { detail: { ok: e.ok, aviso: e.aviso } }));
+}
+function useAnunciar(estado: EstadoAdmin) {
+  useEffect(() => anunciar(estado), [estado]);
+}
+
+export function ResultadoDasAcoes() {
+  const [msg, setMsg] = useState<EstadoAdmin | null>(null);
+  useEffect(() => {
+    const ouvir = (ev: Event) => setMsg((ev as CustomEvent<EstadoAdmin>).detail);
+    window.addEventListener(EVENTO, ouvir);
+    return () => window.removeEventListener(EVENTO, ouvir);
+  }, []);
+  if (!msg) return null;
+  return (
+    <div className="space-y-2" aria-live="polite">
+      {msg.ok && <Alerta tipo="sucesso">{msg.ok}</Alerta>}
+      {msg.aviso && <Alerta tipo="aviso">{msg.aviso}</Alerta>}
+    </div>
+  );
+}
 
 const ESTILOS = {
   primario: "bg-verde-vivo text-tinta hover:bg-verde-vivo-hover min-h-11 px-5 font-semibold",
@@ -44,6 +73,7 @@ export function BotaoAcao({
   dica?: string;
 }) {
   const [estado, enviar] = useActionState<EstadoAdmin, FormData>(acao, {});
+  useAnunciar(estado);
   return (
     <form
       action={enviar}
@@ -137,6 +167,7 @@ export function Presenca({ id, visitaId, valor }: { id: string; visitaId: string
 
 export function AlocarOutra({ visitaId, opcoes }: { visitaId: string; opcoes: { id: string; rotulo: string; confirmar?: string }[] }) {
   const [estado, acao] = useActionState<EstadoAdmin, FormData>(alocarVoluntario, {});
+  useAnunciar(estado);
   const [escolhido, setEscolhido] = useState("");
   const confirmar = opcoes.find((o) => o.id === escolhido)?.confirmar;
   if (opcoes.length === 0) return <p className="text-tinta-suave">Não há mais voluntários ativos.</p>;
@@ -192,7 +223,7 @@ export function EditarVisita({
       <form action={acao} className="mt-4 space-y-4">
         <input type="hidden" name="id" value={visita.id} />
         {jaComunicada && (
-          <Alerta tipo="aviso">Os voluntários já viram esta visita. Se mudares o dia ou a hora, avisa-os.</Alerta>
+          <Alerta tipo="aviso">Os voluntários já viram esta visita. Se mudares o dia, a hora ou a atividade, enviamos-lhes um email a avisar.</Alerta>
         )}
         <div>
           <Rotulo htmlFor="ed-atv">Atividade</Rotulo>
@@ -232,6 +263,7 @@ export function EditarVisita({
         </div>
         {estado.erro && <Alerta tipo="erro">{estado.erro}</Alerta>}
         {estado.ok && <Alerta tipo="sucesso">{estado.ok}</Alerta>}
+        {estado.aviso && <Alerta tipo="aviso">{estado.aviso}</Alerta>}
         <BotaoSubmeter variante="escuro" pendente="A guardar…">Guardar alterações</BotaoSubmeter>
       </form>
     </details>

@@ -6,8 +6,11 @@ import { exigirAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { mensagemDeErro } from "@/lib/erros";
 import { hojeLisboa, somarDias } from "@/lib/tempo";
+import { criarCarteiro, urlDoSite } from "@/lib/emails/enviar";
+import { emailPeriodoAberto } from "@/lib/emails/modelos";
+import type { EstadoAdmin } from "@/lib/estado-admin";
 
-export type EstadoAdmin = { ok?: string; erro?: string };
+export type { EstadoAdmin };
 
 const dia = z.iso.date();
 const periodoSchema = z
@@ -106,4 +109,47 @@ export async function apagarPeriodo(_p: EstadoAdmin, fd: FormData): Promise<Esta
   }
   atualizarEcras();
   return { ok: "Período apagado." };
+}
+
+/**
+ * Avisar todos os voluntários ativos de que a recolha está aberta. Vai em cópia oculta (ninguém vê
+ * os endereços dos outros), em grupos de 50 para respeitar os limites do Gmail.
+ */
+export async function avisarVoluntarios(_p: EstadoAdmin, fd: FormData): Promise<EstadoAdmin> {
+  await exigirAdmin();
+  const m = mesSchema.safeParse({ mes: fd.get("mes") });
+  if (!m.success) return { erro: "Pedido inválido." };
+  const hoje = hojeLisboa();
+  const supabase = await createClient();
+  const { data: p } = await supabase.from("periodos_disponibilidade").select("abre_em, fecha_em").eq("mes", m.data.mes).maybeSingle();
+  if (!p) return { erro: "Período não encontrado." };
+  if (hoje < (p.abre_em as string) || hoje > (p.fecha_em as string)) return { erro: "Só se avisa quando a recolha está aberta." };
+
+  const { data: vols, error } = await supabase.from("voluntarios").select("email").eq("estado", "ativo");
+  if (error) return { erro: mensagemDeErro(error) };
+  const emails = [...new Set((vols ?? []).map((v) => (v.email as string).trim()).filter(Boolean))];
+  if (emails.length === 0) return { erro: "Não há voluntários ativos para avisar." };
+
+  const carteiro = criarCarteiro();
+  if (!carteiro) return { aviso: "O envio de emails não está configurado. Avisa os voluntários por outra via." };
+  const email = emailPeriodoAberto({ mes: m.data.mes, fechaEm: p.fecha_em as string, url: urlDoSite("/conta/disponibilidades") });
+  let enviados = 0;
+  try {
+    for (let i = 0; i < emails.length; i += 50) {
+      const grupo = emails.slice(i, i + 50);
+      if (await carteiro.enviar({ bcc: grupo }, email, "período aberto")) enviados += grupo.length;
+    }
+  } finally {
+    carteiro.fechar();
+  }
+  if (enviados === 0) return { erro: "Não foi possível enviar os emails. Tenta mais tarde." };
+
+  const { error: e2 } = await supabase.from("periodos_disponibilidade").update({ avisados_em: new Date().toISOString() }).eq("mes", m.data.mes);
+  if (e2) console.error("[periodos] avisados_em:", e2.code, e2.message);
+  atualizarEcras();
+  const falhados = emails.length - enviados;
+  return {
+    ok: `Avisámos ${enviados} ${enviados === 1 ? "voluntário" : "voluntários"} por email.`,
+    aviso: falhados ? `${falhados} não ${falhados === 1 ? "recebeu" : "receberam"} o email (falha no envio). Tenta outra vez mais tarde.` : undefined,
+  };
 }

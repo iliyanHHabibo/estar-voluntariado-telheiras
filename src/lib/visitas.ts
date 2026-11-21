@@ -50,14 +50,14 @@ export const ACOES_DO_ESTADO: Record<EstadoVisita, { para: EstadoVisita; rotulo:
     {
       para: "comunicada",
       rotulo: "Comunicar aos voluntários",
-      ajuda: "Os voluntários alocados passam a ver esta visita na conta deles e podem confirmar. (Os emails automáticos vêm numa fase seguinte.)",
+      ajuda: "Os voluntários alocados recebem um email (com o ficheiro para o calendário do telemóvel) e passam a ver a visita na conta deles, onde a confirmam.",
     },
     { para: "rascunho", rotulo: "Voltar a rascunho" },
     { para: "cancelada", rotulo: "Cancelar visita", perigo: true },
   ],
   comunicada: [
     { para: "realizada", rotulo: "Marcar como realizada", ajuda: "Só depois de a visita acontecer." },
-    { para: "cancelada", rotulo: "Cancelar visita", perigo: true },
+    { para: "cancelada", rotulo: "Cancelar visita", perigo: true, ajuda: "Quem já tinha sido avisado recebe um email a dizer que a visita foi cancelada." },
   ],
   realizada: [{ para: "comunicada", rotulo: "Reabrir (voltar a comunicada)" }],
   cancelada: [{ para: "rascunho", rotulo: "Reativar (voltar a rascunho)" }],

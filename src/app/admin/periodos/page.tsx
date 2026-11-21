@@ -6,7 +6,7 @@ import { AcoesPeriodo, NovoPeriodo } from "./forms";
 
 export const metadata: Metadata = { title: "Períodos de disponibilidades" };
 
-type Periodo = { mes: string; abre_em: string; fecha_em: string };
+type Periodo = { mes: string; abre_em: string; fecha_em: string; avisados_em: string | null };
 
 const ESTADO = {
   a_abrir: { texto: "Ainda não abriu", cor: "bg-cinza text-tinta" },
@@ -19,7 +19,7 @@ export default async function Periodos() {
   const supabase = await createClient();
   const hoje = hojeLisboa();
 
-  const { data } = await supabase.from("periodos_disponibilidade").select("mes, abre_em, fecha_em").order("mes", { ascending: false }).limit(12);
+  const { data } = await supabase.from("periodos_disponibilidade").select("mes, abre_em, fecha_em, avisados_em").order("mes", { ascending: false }).limit(12);
   const periodos = (data ?? []) as Periodo[];
 
   // Quantos voluntários já indicaram disponibilidades em cada mês?
@@ -77,7 +77,7 @@ export default async function Periodos() {
                   {ativos != null ? ` (de ${ativos} ativos)` : ""}.
                 </p>
               </div>
-              <AcoesPeriodo mes={p.mes} abreEm={p.abre_em} fechaEm={p.fecha_em} estado={estado} />
+              <AcoesPeriodo mes={p.mes} abreEm={p.abre_em} fechaEm={p.fecha_em} estado={estado} avisadosEm={p.avisados_em} ativos={ativos} />
             </article>
           );
         })}

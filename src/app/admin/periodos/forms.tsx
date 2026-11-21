@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { abrirAgora, apagarPeriodo, atualizarPeriodo, criarPeriodo, fecharAgora, type EstadoAdmin } from "./actions";
+import { abrirAgora, apagarPeriodo, atualizarPeriodo, avisarVoluntarios, criarPeriodo, fecharAgora, type EstadoAdmin } from "./actions";
 import { Alerta, BotaoSubmeter, CAMPO, Rotulo } from "@/components/forms";
 
 /** Por omissão a recolha de um mês decorre entre os dias 15 e 25 do mês anterior. */
@@ -92,10 +92,54 @@ function BotaoPequeno({ acaoServidor, mes, rotulo, perigo }: { acaoServidor: (p:
   );
 }
 
-export function AcoesPeriodo({ mes, abreEm, fechaEm, estado }: { mes: string; abreEm: string; fechaEm: string; estado: "a_abrir" | "aberto" | "fechado" }) {
+function AvisarVoluntarios({ mes, avisadosEm, ativos }: { mes: string; avisadosEm: string | null; ativos: number | null }) {
+  const [estado, acao] = useActionState<EstadoAdmin, FormData>(avisarVoluntarios, {});
+  const pergunta = avisadosEm
+    ? `Já avisaste os voluntários a ${new Date(avisadosEm).toLocaleDateString("pt-PT", { timeZone: "Europe/Lisbon" })}. Enviar outra vez a todos?`
+    : `Enviar um email a ${ativos ?? "todos os"} voluntários ativos a dizer que a recolha está aberta?`;
+  return (
+    <form
+      action={acao}
+      onSubmit={(e) => {
+        if (!confirm(pergunta)) e.preventDefault();
+      }}
+      className="space-y-2"
+    >
+      <input type="hidden" name="mes" value={mes} />
+      <BotaoSubmeter variante="escuro" pendente="A enviar…" className="min-h-10 !py-2 text-sm">
+        {avisadosEm ? "Avisar outra vez por email" : "Avisar voluntários por email"}
+      </BotaoSubmeter>
+      {avisadosEm && !estado.ok && (
+        <p className="text-sm text-tinta-suave">
+          Avisados a {new Date(avisadosEm).toLocaleDateString("pt-PT", { timeZone: "Europe/Lisbon" })}.
+        </p>
+      )}
+      {estado.erro && <Alerta tipo="erro">{estado.erro}</Alerta>}
+      {estado.ok && <Alerta tipo="sucesso">{estado.ok}</Alerta>}
+      {estado.aviso && <Alerta tipo="aviso">{estado.aviso}</Alerta>}
+    </form>
+  );
+}
+
+export function AcoesPeriodo({
+  mes,
+  abreEm,
+  fechaEm,
+  estado,
+  avisadosEm,
+  ativos,
+}: {
+  mes: string;
+  abreEm: string;
+  fechaEm: string;
+  estado: "a_abrir" | "aberto" | "fechado";
+  avisadosEm: string | null;
+  ativos: number | null;
+}) {
   const [res, acao] = useActionState<EstadoAdmin, FormData>(atualizarPeriodo, {});
   return (
     <div className="space-y-3">
+      {estado === "aberto" && <AvisarVoluntarios mes={mes} avisadosEm={avisadosEm} ativos={ativos} />}
       <div className="flex flex-wrap gap-2">
         {estado !== "aberto" && <BotaoPequeno acaoServidor={abrirAgora} mes={mes} rotulo="Abrir agora" />}
         {estado === "aberto" && <BotaoPequeno acaoServidor={fecharAgora} mes={mes} rotulo="Fechar agora" />}
