@@ -5,6 +5,8 @@ import { Container } from "@/components/ui";
 import { UserRound } from "lucide-react";
 import { adminExige2fa, exigirAdmin, obterUtilizador } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { testemunhosPendentes, visitasComFalta, visitasPorResponder } from "@/lib/contadores";
+import { Contador } from "@/components/contador";
 import { sair } from "../entrar/actions";
 
 export const metadata: Metadata = {
@@ -19,15 +21,23 @@ export const metadata: Metadata = {
  */
 export const instant = false;
 
-const NAV_ADMIN = [
+const NAV_ADMIN: { href: string; label: string; contador?: ReactNode }[] = [
   { href: "/admin", label: "Painel" },
-  { href: "/admin/planeamento", label: "Planeamento" },
+  { href: "/admin/planeamento", label: "Planeamento", contador: <ComFalta /> },
   { href: "/admin/periodos", label: "Períodos" },
   { href: "/admin/voluntarios", label: "Voluntários" },
   { href: "/admin/atividades", label: "Atividades" },
-  { href: "/admin/testemunhos", label: "Testemunhos" },
+  { href: "/admin/testemunhos", label: "Testemunhos", contador: <TestemunhosPendentes /> },
   { href: "/admin/admins", label: "Admins" },
 ];
+
+async function ComFalta() {
+  return <Contador n={await visitasComFalta()} singular="visita com falta de pessoas" plural="visitas com falta de pessoas" />;
+}
+
+async function TestemunhosPendentes() {
+  return <Contador n={await testemunhosPendentes()} singular="testemunho por rever" plural="testemunhos por rever" />;
+}
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   return (
@@ -37,8 +47,9 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           <nav aria-label="Administração" className="flex flex-wrap gap-1">
             <span className="titulo mr-3 self-center text-sm">Admin</span>
             {NAV_ADMIN.map((i) => (
-              <Link key={i.href} href={i.href} className="rounded-full px-4 py-2 text-sm font-medium hover:bg-white/10">
+              <Link key={i.href} href={i.href} className="inline-flex items-center rounded-full px-4 py-2 text-sm font-medium hover:bg-white/10">
                 {i.label}
+                {i.contador && <Suspense fallback={null}>{i.contador}</Suspense>}
               </Link>
             ))}
           </nav>
@@ -86,6 +97,7 @@ async function AtalhoVoluntario() {
   if (!u) return null;
   const supabase = await createClient();
   const { data } = await supabase.from("voluntarios").select("id").eq("id", u.id).maybeSingle();
+  const porResponder = data ? await visitasPorResponder(u.id) : 0;
   return (
     <Link
       href={data ? "/conta" : "/conta/inscricao"}
@@ -93,6 +105,7 @@ async function AtalhoVoluntario() {
     >
       <UserRound aria-hidden className="size-4" />
       {data ? "A minha conta de voluntário" : "Inscrever-me como voluntário"}
+      <Contador n={porResponder} singular="visita por responder" plural="visitas por responder" />
     </Link>
   );
 }
