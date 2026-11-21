@@ -34,7 +34,9 @@ export async function proxy(request: NextRequest) {
   const autenticado = Boolean(data?.claims?.sub);
 
   const { pathname, search } = request.nextUrl;
-  const privado = pathname.startsWith("/conta") || pathname.startsWith("/admin");
+  // "/conta" e "/conta/…", mas NÃO "/contactos" (que é pública)
+  const dentroDe = (base: string) => pathname === base || pathname.startsWith(`${base}/`);
+  const privado = dentroDe("/conta") || dentroDe("/admin");
 
   if (privado && !autenticado) {
     const destino = request.nextUrl.clone();
