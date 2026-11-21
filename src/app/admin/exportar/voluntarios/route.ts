@@ -1,11 +1,11 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { adminParaApi } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { gerarCsv } from "@/lib/csv";
-import { CABECALHO_VOLUNTARIOS, linhasVoluntarios, prepararVoluntarios, type AlocacaoBruta, type InteresseBruto, type VoluntarioBruto } from "@/lib/exportar";
+import { gerarExcel, TIPO_EXCEL } from "@/lib/excel";
+import { COLUNAS_VOLUNTARIOS, linhasVoluntarios, prepararVoluntarios, type AlocacaoBruta, type InteresseBruto, type VoluntarioBruto } from "@/lib/exportar";
 import { hojeLisboa } from "@/lib/tempo";
 
-/** Ficheiro CSV (abre no Excel) com todos os voluntários. Só para admins (com 2FA). */
+/** Ficheiro Excel com todos os voluntários. Só para admins (com 2FA). */
 export async function GET(req: NextRequest) {
   if (!(await adminParaApi())) return new Response("Não encontrado", { status: 404 });
 
@@ -40,10 +40,11 @@ export async function GET(req: NextRequest) {
       hoje,
     );
 
-    return new Response(gerarCsv(CABECALHO_VOLUNTARIOS, linhasVoluntarios(linhas)), {
+    const ficheiro = await gerarExcel(COLUNAS_VOLUNTARIOS, linhasVoluntarios(linhas), "Voluntários");
+    return new Response(new Uint8Array(ficheiro), {
       headers: {
-        "Content-Type": "text/csv; charset=utf-8",
-        "Content-Disposition": `attachment; filename="voluntarios-${hoje}.csv"`,
+        "Content-Type": TIPO_EXCEL,
+        "Content-Disposition": `attachment; filename="voluntarios-${hoje}.xlsx"`,
         "Cache-Control": "private, no-store",
       },
     });

@@ -1,8 +1,7 @@
-// Testes do horário em texto, do CSV e dos utilitários de texto. Correr com: npm test
+// Testes do horário em texto e dos utilitários de texto. Correr com: npm test
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { descreverHorario } from "./horario.ts";
-import { celula, gerarCsv } from "./csv.ts";
 import { gerarSlug, linhasParaLista, listaParaLinhas } from "./texto.ts";
 
 const dias = (lista: number[], abre: string, fecha: string) => lista.map((d) => ({ dia_semana: d, abre, fecha }));
@@ -26,36 +25,6 @@ test("horário: horas diferentes em dias diferentes, e sem horário", () => {
     "Dias úteis, das 10h às 17h; Sábados, das 10h às 13h",
   );
   assert.equal(descreverHorario([]), "Sem horário definido");
-});
-
-test("csv: separador ;, aspas e quebras de linha ficam escapados", () => {
-  assert.equal(celula("a;b"), '"a;b"');
-  assert.equal(celula('diz "olá"'), '"diz ""olá"""');
-  assert.equal(celula("linha 1\nlinha 2"), '"linha 1\nlinha 2"');
-  assert.equal(celula(null), "");
-  assert.equal(celula(undefined), "");
-  assert.equal(celula(12), "12");
-  assert.equal(celula(true), "true");
-});
-
-test("csv: fórmulas do Excel são neutralizadas (CSV injection)", () => {
-  assert.equal(celula("=HYPERLINK(\"http://x\",\"clica\")"), `"'=HYPERLINK(""http://x"",""clica"")"`);
-  assert.equal(celula("@SUM(A1)"), "'@SUM(A1)");
-  assert.equal(celula("+cmd|' /C calc'!A0"), "'+cmd|' /C calc'!A0");
-  assert.equal(celula("-2+3+cmd|' /C calc'!A0"), "'-2+3+cmd|' /C calc'!A0");
-  assert.equal(celula("\t=1+1"), "'\t=1+1");
-});
-
-test("csv: telefones e números normais não são alterados", () => {
-  assert.equal(celula("+351 913 000 000"), "+351 913 000 000");
-  assert.equal(celula("912345678"), "912345678");
-  assert.equal(celula(-5), "-5");
-  assert.equal(celula("Ana = Maria"), "Ana = Maria"); // só conta quando COMEÇA por =
-});
-
-test("csv: ficheiro completo (BOM, CRLF, cabeçalho)", () => {
-  const f = gerarCsv(["Nome", "Telefone"], [["Ana; Silva", "912"], ["=1+1", ""]]);
-  assert.equal(f, '﻿Nome;Telefone\r\n"Ana; Silva";912\r\n\'=1+1;\r\n');
 });
 
 test("texto: uma linha por item, sem linhas vazias", () => {

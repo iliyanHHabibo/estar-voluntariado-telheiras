@@ -1,26 +1,27 @@
 /** Linhas dos ficheiros de exportação (Excel). Lógica pura, testada em exportar.test.ts. */
 import { dataCurta, horaTexto, idadeEm } from "./tempo.ts";
 import { ESTADOS_ALOCACAO, ESTADOS_VISITA, type EstadoAlocacao, type EstadoVisita } from "./visitas.ts";
-import { estatisticaVazia, estatisticasPorVoluntario, formatarHoras, type AlocacaoParaEstatistica, type Estatistica } from "./voluntarios.ts";
+import { estatisticaVazia, estatisticasPorVoluntario, type AlocacaoParaEstatistica, type Estatistica } from "./voluntarios.ts";
 
-export const CABECALHO_VOLUNTARIOS = [
-  "Nome",
-  "Email",
-  "Telefone",
-  "Data de nascimento",
-  "Idade",
-  "Menor de idade",
-  "Estado",
-  "Encarregado de educação",
-  "Telefone do encarregado",
-  "Email do encarregado",
-  "Inscrito em",
-  "Atividades de interesse",
-  "Visitas feitas",
-  "Horas de voluntariado",
-  "Faltas",
-  "Próximas visitas",
+export const COLUNAS_VOLUNTARIOS = [
+  { titulo: "Nome", largura: 28 },
+  { titulo: "Email", largura: 30 },
+  { titulo: "Telefone", largura: 16 },
+  { titulo: "Data de nascimento", largura: 12 },
+  { titulo: "Idade", largura: 7 },
+  { titulo: "Menor de idade", largura: 9 },
+  { titulo: "Estado", largura: 9 },
+  { titulo: "Encarregado de educação", largura: 24 },
+  { titulo: "Telefone do encarregado", largura: 16 },
+  { titulo: "Email do encarregado", largura: 26 },
+  { titulo: "Inscrito em", largura: 12 },
+  { titulo: "Atividades de interesse", largura: 36 },
+  { titulo: "Visitas feitas", largura: 9 },
+  { titulo: "Horas de voluntariado", largura: 11 },
+  { titulo: "Faltas", largura: 7 },
+  { titulo: "Próximas visitas", largura: 9 },
 ];
+export const CABECALHO_VOLUNTARIOS = COLUNAS_VOLUNTARIOS.map((c) => c.titulo);
 
 export type VoluntarioParaExportar = {
   nome: string;
@@ -52,25 +53,26 @@ export function linhasVoluntarios(vols: VoluntarioParaExportar[]): unknown[][] {
     dataCurta(v.criado_em),
     v.interesses.join(", "),
     v.stats.feitas,
-    formatarHoras(v.stats.horas),
+    Math.round(v.stats.horas * 10) / 10,
     v.stats.faltas,
     v.stats.proximas,
   ]);
 }
 
-export const CABECALHO_VISITAS = [
-  "Data",
-  "Início",
-  "Fim",
-  "Atividade",
-  "Estado da visita",
-  "Voluntário",
-  "Telefone",
-  "Email",
-  "Estado da resposta",
-  "Presença",
-  "Motivo (se recusou ou cancelou)",
+export const COLUNAS_VISITAS = [
+  { titulo: "Data", largura: 11 },
+  { titulo: "Início", largura: 7 },
+  { titulo: "Fim", largura: 7 },
+  { titulo: "Atividade", largura: 30 },
+  { titulo: "Estado da visita", largura: 26 },
+  { titulo: "Voluntário", largura: 26 },
+  { titulo: "Telefone", largura: 16 },
+  { titulo: "Email", largura: 28 },
+  { titulo: "Estado da resposta", largura: 20 },
+  { titulo: "Presença", largura: 10 },
+  { titulo: "Motivo (se recusou ou cancelou)", largura: 32 },
 ];
+export const CABECALHO_VISITAS = COLUNAS_VISITAS.map((c) => c.titulo);
 
 export type VisitaParaExportar = {
   data: string;

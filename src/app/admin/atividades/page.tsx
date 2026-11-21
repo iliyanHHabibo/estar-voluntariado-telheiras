@@ -6,11 +6,13 @@ import { createClient } from "@/lib/supabase/server";
 import { descreverHorario } from "@/lib/horario";
 import { dataCurta, hojeLisboa } from "@/lib/tempo";
 import { NovoFecho, RemoverFecho } from "./fechos";
+import { Alerta } from "@/components/forms";
 
 export const metadata: Metadata = { title: "Atividades" };
 
-export default async function Atividades() {
+export default async function Atividades({ searchParams }: PageProps<"/admin/atividades">) {
   await exigirAdmin();
+  const { apagada } = await searchParams;
   const supabase = await createClient();
   const hoje = hojeLisboa();
   const [{ data: atividades }, { data: horarios }, { data: fechos }] = await Promise.all([
@@ -33,6 +35,8 @@ export default async function Atividades() {
           <Plus aria-hidden className="size-5" /> Nova atividade
         </Link>
       </div>
+
+      {apagada && <Alerta tipo="sucesso">Atividade apagada.</Alerta>}
 
       <section className="space-y-4">
         {(atividades ?? []).map((a) => (

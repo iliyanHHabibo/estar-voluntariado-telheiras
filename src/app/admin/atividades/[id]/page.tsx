@@ -8,6 +8,7 @@ import { exigirAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { listaParaLinhas } from "@/lib/texto";
 import { FormAtividade } from "../form";
+import { ApagarAtividade } from "../apagar";
 
 export const metadata: Metadata = { title: "Editar atividade" };
 
@@ -25,10 +26,12 @@ async function Conteudo({ params }: { params: PageProps<"/admin/atividades/[id]"
   if (!z.uuid().safeParse(id).success) notFound();
 
   const supabase = await createClient();
-  const [{ data: a }, { data: c }, { data: hs }] = await Promise.all([
+  const [{ data: a }, { data: c }, { data: hs }, { count: visitas }, { count: disponibilidades }] = await Promise.all([
     supabase.from("atividades").select("*").eq("id", id).maybeSingle(),
     supabase.from("atividade_contactos").select("responsavel_nome, responsavel_contacto, notas").eq("atividade_id", id).maybeSingle(),
     supabase.from("atividade_horarios").select("dia_semana, abre, fecha").eq("atividade_id", id),
+    supabase.from("visitas").select("id", { count: "exact", head: true }).eq("atividade_id", id),
+    supabase.from("disponibilidades").select("id", { count: "exact", head: true }).eq("atividade_id", id),
   ]);
   if (!a) notFound();
 
@@ -63,6 +66,10 @@ async function Conteudo({ params }: { params: PageProps<"/admin/atividades/[id]"
           horarios,
         }}
       />
+      <section className="max-w-3xl space-y-4 rounded-3xl border-2 border-erro/20 bg-white p-6 sm:p-8">
+        <h2 className="titulo text-xl text-erro">Apagar atividade</h2>
+        <ApagarAtividade id={a.id as string} nome={a.nome as string} visitas={visitas ?? 0} disponibilidades={disponibilidades ?? 0} />
+      </section>
     </div>
   );
 }

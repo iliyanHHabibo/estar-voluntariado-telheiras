@@ -162,6 +162,36 @@ export async function guardarAtividade(_p: EstadoAdmin, fd: FormData): Promise<E
   redirect(`/admin/atividades/${criada}`);
 }
 
+// ------------------------------------------------------------------ apagar
+/**
+ * Só se apagam atividades SEM visitas (senão perdia-se o histórico; a base de dados também o impede).
+ * Com visitas, esconde-se (desmarcar "Ativa"). Ao apagar, vão também os horários, os feriados próprios,
+ * o contacto do responsável e as disponibilidades que os voluntários indicaram para ela.
+ */
+export async function apagarAtividade(_p: EstadoAdmin, fd: FormData): Promise<EstadoAdmin> {
+  await exigirAdmin();
+  const id = z.uuid().safeParse(fd.get("id"));
+  if (!id.success) return { erro: "Pedido inválido." };
+
+  const supabase = await createClient();
+  const { count, error: e1 } = await supabase.from("visitas").select("id", { count: "exact", head: true }).eq("atividade_id", id.data);
+  if (e1) return { erro: mensagemDeErro(e1) };
+  const esconder = 'Para a tirar do site, desmarca "Ativa" e guarda.';
+  if ((count ?? 0) > 0) {
+    return { erro: `Esta atividade tem ${count} ${count === 1 ? "visita" : "visitas"}, por isso não se pode apagar (perdia-se o histórico). ${esconder}` };
+  }
+
+  const { data, error } = await supabase.from("atividades").delete().eq("id", id.data).select("id");
+  if (error) {
+    if (error.code === "23503") return { erro: `Esta atividade tem visitas associadas, por isso não se pode apagar. ${esconder}` };
+    console.error("[atividades] apagar:", error.code, error.message);
+    return { erro: mensagemDeErro(error) };
+  }
+  if (!data?.length) return { erro: "Atividade não encontrada." };
+  atualizarEcras();
+  redirect("/admin/atividades?apagada=1");
+}
+
 // ------------------------------------------------------------------ feriados e dias de fecho
 const fechoSchema = z.object({
   data: z.iso.date("Escolhe o dia."),

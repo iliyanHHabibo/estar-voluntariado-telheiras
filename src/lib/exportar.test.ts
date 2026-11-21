@@ -2,7 +2,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { CABECALHO_VISITAS, CABECALHO_VOLUNTARIOS, linhasVisitas, linhasVoluntarios, prepararVisitas, prepararVoluntarios, type VisitaParaExportar } from "./exportar.ts";
-import { gerarCsv } from "./csv.ts";
 
 test("voluntários: uma linha por pessoa, com o mesmo número de colunas que o cabeçalho", () => {
   const linhas = linhasVoluntarios([
@@ -37,7 +36,7 @@ test("voluntários: uma linha por pessoa, com o mesmo número de colunas que o c
   ]);
   assert.equal(linhas.length, 2);
   for (const l of linhas) assert.equal(l.length, CABECALHO_VOLUNTARIOS.length);
-  assert.deepEqual(linhas[0], ["Ana Silva", "ana@exemplo.pt", "+351 912 345 678", "04/03/1995", 31, "Não", "Ativo", null, null, null, "20/11/2026", "Clínica de S. José, Centro de Dia", 3, "4,5", 1, 2]);
+  assert.deepEqual(linhas[0], ["Ana Silva", "ana@exemplo.pt", "+351 912 345 678", "04/03/1995", 31, "Não", "Ativo", null, null, null, "20/11/2026", "Clínica de S. José, Centro de Dia", 3, 4.5, 1, 2]);
   assert.equal(linhas[1][5], "Sim");
   assert.equal(linhas[1][6], "Inativo");
 });
@@ -75,12 +74,6 @@ test("visitas: presença registada", () => {
   assert.equal(l[0][9], "Presente");
 });
 
-test("exportação completa: nomes maliciosos não viram fórmulas no Excel", () => {
-  const csv = gerarCsv(CABECALHO_VISITAS, linhasVisitas([{ ...visitas[0], alocacoes: [{ ...visitas[0].alocacoes[0], nome: '=HYPERLINK("http://mau.pt","clica")' }] }]));
-  assert.ok(csv.includes(`"'=HYPERLINK(""http://mau.pt"",""clica"")"`));
-  assert.ok(!/;=HYPERLINK/.test(csv));
-});
-
 // ---- os dados tal como a base de dados os devolve (relações como objeto, lista ou null) ----
 const vol = (id: string, nome: string, nasc = "1995-03-04") => ({
   id, nome, email: `${id}@exemplo.pt`, telefone: "912345678", data_nascimento: nasc, estado: "ativo",
@@ -110,14 +103,12 @@ test("preparar voluntários: relações como objeto, lista de 1 e null; sem aloc
   assert.deepEqual(r[1].interesses, []);
   assert.equal(r[1].stats.feitas, 0);
   assert.equal(r[2].idade, 16);
-  // e o ficheiro final gera-se sem erros
-  assert.ok(gerarCsv(CABECALHO_VOLUNTARIOS, linhasVoluntarios(r)).includes("Ana;ana@exemplo.pt"));
+  assert.equal(linhasVoluntarios(r)[0][0], "Ana");
 });
 
 test("preparar voluntários: listas vazias (projeto novo)", () => {
   assert.deepEqual(prepararVoluntarios([], [], [], "2026-12-10"), []);
-  const csv = gerarCsv(CABECALHO_VOLUNTARIOS, linhasVoluntarios([]));
-  assert.equal(csv.split("\r\n").length, 2); // cabeçalho + linha final vazia
+  assert.deepEqual(linhasVoluntarios([]), []);
 });
 
 test("preparar visitas: alocações como lista, objeto, vazias ou null; pessoa apagada", () => {

@@ -2,11 +2,11 @@ import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 import { adminParaApi } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { gerarCsv } from "@/lib/csv";
-import { CABECALHO_VISITAS, linhasVisitas, prepararVisitas, type VisitaBruta } from "@/lib/exportar";
-import { hojeLisboa, mesSeguinte, primeiroDiaDoMes } from "@/lib/tempo";
+import { gerarExcel, TIPO_EXCEL } from "@/lib/excel";
+import { COLUNAS_VISITAS, linhasVisitas, prepararVisitas, type VisitaBruta } from "@/lib/exportar";
+import { hojeLisboa, mesSeguinte, primeiroDiaDoMes, rotuloMes } from "@/lib/tempo";
 
-/** Ficheiro CSV (abre no Excel) com as visitas de um mês (?mes=AAAA-MM-01) e quem foi alocado. Só para admins (com 2FA). */
+/** Ficheiro Excel com as visitas de um mês (?mes=AAAA-MM-01) e quem foi alocado. Só para admins (com 2FA). */
 export async function GET(req: NextRequest) {
   if (!(await adminParaApi())) return new Response("Não encontrado", { status: 404 });
 
@@ -29,11 +29,12 @@ export async function GET(req: NextRequest) {
       return falhou();
     }
 
-    const csv = gerarCsv(CABECALHO_VISITAS, linhasVisitas(prepararVisitas((data ?? []) as unknown as VisitaBruta[])));
-    return new Response(csv, {
+    const folha = mes ? `Visitas ${rotuloMes(mes)}` : "Visitas";
+    const ficheiro = await gerarExcel(COLUNAS_VISITAS, linhasVisitas(prepararVisitas((data ?? []) as unknown as VisitaBruta[])), folha);
+    return new Response(new Uint8Array(ficheiro), {
       headers: {
-        "Content-Type": "text/csv; charset=utf-8",
-        "Content-Disposition": `attachment; filename="visitas-${mes ? mes.slice(0, 7) : `todas-${hoje}`}.csv"`,
+        "Content-Type": TIPO_EXCEL,
+        "Content-Disposition": `attachment; filename="visitas-${mes ? mes.slice(0, 7) : `todas-${hoje}`}.xlsx"`,
         "Cache-Control": "private, no-store",
       },
     });

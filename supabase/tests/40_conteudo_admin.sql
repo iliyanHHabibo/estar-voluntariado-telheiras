@@ -163,6 +163,20 @@ select tests.falha(format('update public.voluntarios set data_nascimento = (priv
 update public.voluntarios set estado = 'inativo' where id = :VOL;
 select tests.ok((select estado = 'inativo' from public.voluntarios where id = :VOL), 'admin desativa e reativa voluntários');
 update public.voluntarios set estado = 'ativo' where id = :VOL;
+
+-- ================= APAGAR ATIVIDADES =================
+insert into public.visitas (atividade_id, data, inicio, fim) values (:'nova', private.hoje() + 3, '09:00', '10:00') returning id as vnova \gset
+select tests.falha(format('delete from public.atividades where id = %L', :'nova'), 'violates foreign key', 'atividade COM visitas não se apaga (protege o histórico)');
+delete from public.visitas where id = :'vnova';
+select tests.entrar(:VOL);
+select tests.ok(tests.linhas(format('delete from public.atividades where id = %L', :'nova')) = 0, 'voluntário NÃO apaga atividades');
+select tests.entrar(:ADM, 'aal2');
+delete from public.atividades where id = :'nova';
+select tests.ok(not exists (select 1 from public.atividades where id = :'nova'), 'atividade SEM visitas apaga-se');
+select tests.ok(not exists (select 1 from public.atividade_horarios where atividade_id = :'nova'), 'e vão os seus horários');
+select tests.ok(not exists (select 1 from public.atividade_contactos where atividade_id = :'nova'), 'e o contacto do responsável');
+select tests.ok(not exists (select 1 from public.atividade_fechos where atividade_id = :'nova'), 'e os feriados próprios dela');
+select tests.ok(exists (select 1 from public.atividade_fechos where atividade_id is null and data = '2027-12-24'), 'os fechos "para tudo" mantêm-se');
 reset role;
 
 select 'CONTEÚDO DO ADMIN: TUDO OK';
