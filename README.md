@@ -26,6 +26,7 @@ Guias de teste (para amigos): "ESTAR — Guia de teste para voluntários" e "…
 
 Precisas de [Node.js](https://nodejs.org) (versão LTS), Git e um projeto Supabase.
 **Segue o guia [`CONFIGURAR.md`](./CONFIGURAR.md)** (Supabase, emails, primeiro admin).
+Para trabalhar no código com a equipa: [`CONTRIBUIR.md`](./CONTRIBUIR.md).
 
 ```bash
 npm install
